@@ -1,0 +1,224 @@
+<UserControl x:Class="ImageGuard.Views.ResearchView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="28">
+            <TextBlock Text="Исследование устойчивости" FontSize="28" FontWeight="Bold" />
+            <TextBlock Style="{StaticResource MutedText}"
+                       Margin="0,5,0,20"
+                       Text="Преобразование защищенного изображения с последующей реальной проверкой RSA-подписи, watermark, PSNR и BER." />
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Исходные данные" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="190" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="160" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center"
+                                   FontWeight="SemiBold" Text="Защищенное изображение" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"
+                                   Text="{Binding ImagePath}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+                        <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource SecondaryButton}"
+                                Command="{Binding SelectImageCommand}" Content="Выбрать..." />
+
+                        <TextBlock Grid.Row="1" VerticalAlignment="Center"
+                                   FontWeight="SemiBold" Text="Исходная подпись .igsig" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"
+                                   Text="{Binding SignaturePath}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+                        <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource SecondaryButton}"
+                                Command="{Binding SelectSignatureCommand}" Content="Выбрать..." />
+
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center"
+                                   FontWeight="SemiBold" Text="Открытый RSA-ключ" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center"
+                                   Text="{Binding PublicKeyPath}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+                        <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource SecondaryButton}"
+                                Command="{Binding SelectPublicKeyCommand}" Content="Выбрать..." />
+
+                        <TextBlock Grid.Row="3" VerticalAlignment="Center"
+                                   FontWeight="SemiBold" Text="Папка результатов" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center"
+                                   Text="{Binding OutputDirectory}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+                        <Button Grid.Row="3" Grid.Column="2" Style="{StaticResource SecondaryButton}"
+                                Command="{Binding SelectOutputDirectoryCommand}" Content="Выбрать..." />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="Преобразование" />
+                        <TextBlock Style="{StaticResource LabelText}" Text="Тип воздействия" />
+                        <ComboBox ItemsSource="{Binding Transformations}"
+                                  SelectedItem="{Binding SelectedTransformation}"
+                                  DisplayMemberPath="DisplayName" />
+
+                        <StackPanel Visibility="{Binding UsesPrimaryValue, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Style="{StaticResource LabelText}" Text="{Binding ParameterLabel}" />
+                            <TextBox Text="{Binding ParameterValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsNoise, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Style="{StaticResource LabelText}" Text="Seed генератора" />
+                            <TextBox Text="{Binding Seed, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                        </StackPanel>
+
+                        <CheckBox IsChecked="{Binding RestoreOriginalSize}"
+                                  Margin="0,8,0,10"
+                                  Content="Вернуть к исходному размеру после преобразования"
+                                  Visibility="{Binding IsGeometric, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                        <StackPanel Visibility="{Binding IsRegion, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Style="{StaticResource LabelText}" Text="Прямоугольная область" />
+                            <UniformGrid Columns="4">
+                                <StackPanel Margin="0,0,8,0">
+                                    <TextBlock Text="X" />
+                                    <TextBox Text="{Binding RegionX, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,8,0">
+                                    <TextBlock Text="Y" />
+                                    <TextBox Text="{Binding RegionY, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,8,0">
+                                    <TextBlock Text="Ширина" />
+                                    <TextBox Text="{Binding RegionWidth, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="Высота" />
+                                    <TextBox Text="{Binding RegionHeight, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                                </StackPanel>
+                            </UniformGrid>
+                            <TextBlock Style="{StaticResource LabelText}" Text="Цвет заливки RGB" />
+                            <UniformGrid Columns="3">
+                                <TextBox Margin="0,4,8,10" Text="{Binding RegionRed, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                                <TextBox Margin="0,4,8,10" Text="{Binding RegionGreen, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                                <TextBox Text="{Binding RegionBlue, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                            </UniformGrid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="Watermark и запуск" />
+                        <TextBlock Style="{StaticResource LabelText}"
+                                   Text="Ожидаемый текст watermark (для BER)" />
+                        <TextBox Text="{Binding ExpectedWatermark, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Style="{StaticResource MutedText}"
+                                   Text="BER считается по исходным решениям DCT-битов до декодирования UTF-8; без ожидаемого текста сравнение недоступно." />
+                        <TextBlock Style="{StaticResource LabelText}"
+                                   Text="Delta (используется, если .igsig недоступен)" />
+                        <TextBox Width="150"
+                                 HorizontalAlignment="Left"
+                                 Text="{Binding WatermarkSettings.Delta, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+
+                        <WrapPanel>
+                            <Button Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding RunExperimentCommand}"
+                                    ToolTip="Выберите изображение, .igsig, public key и папку результатов."
+                                    Content="Выполнить один" />
+                            <Button Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding RunPresetSeriesCommand}"
+                                    ToolTip="Выберите изображение, .igsig, public key и папку результатов."
+                                    Content="Запустить серию" />
+                            <Button Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding CancelCommand}"
+                                    Content="Отмена" />
+                        </WrapPanel>
+                        <TextBlock Style="{StaticResource MutedText}"
+                                   Text="Серия использует значения из методики: JPEG 100…30, яркость ±20/40, контраст 0.6…1.4, шум 2…20, resize 90/75/50%, crop 5/10/20%." />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,10">
+                        <TextBlock DockPanel.Dock="Left"
+                                   Style="{StaticResource SectionTitle}"
+                                   Text="Результаты эксперимента" />
+                        <Button DockPanel.Dock="Right"
+                                HorizontalAlignment="Right"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding ExportCsvCommand}"
+                                Content="Экспорт CSV" />
+                    </DockPanel>
+                    <ProgressBar Height="5"
+                                 Margin="0,0,0,8"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="{Binding ProgressValue, Mode=OneWay}"
+                                 Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock Text="{Binding StatusText}"
+                               Style="{StaticResource MutedText}"
+                               Margin="0,0,0,10" />
+                    <DataGrid ItemsSource="{Binding Results}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              MinHeight="220"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Преобразование"
+                                                Binding="{Binding TransformationName, Mode=OneWay}"
+                                                Width="150" />
+                            <DataGridTextColumn Header="Параметры"
+                                                Binding="{Binding Parameters, Mode=OneWay}"
+                                                Width="220" />
+                            <DataGridTextColumn Header="Подпись"
+                                                Binding="{Binding SignatureDisplay, Mode=OneWay}"
+                                                Width="115" />
+                            <DataGridTextColumn Header="Watermark"
+                                                Binding="{Binding WatermarkDisplay, Mode=OneWay}"
+                                                Width="110" />
+                            <DataGridTextColumn Header="Извлеченный текст"
+                                                Binding="{Binding ExtractedWatermark, Mode=OneWay}"
+                                                Width="150" />
+                            <DataGridTextColumn Header="BER"
+                                                Binding="{Binding BerDisplay, Mode=OneWay}"
+                                                Width="75" />
+                            <DataGridTextColumn Header="MSE (RGB)"
+                                                Binding="{Binding MseDisplay, Mode=OneWay}"
+                                                Width="90" />
+                            <DataGridTextColumn Header="PSNR"
+                                                Binding="{Binding PsnrDisplay, Mode=OneWay}"
+                                                Width="85" />
+                            <DataGridTextColumn Header="Время"
+                                                Binding="{Binding ProcessingTime, Mode=OneWay, StringFormat={}{0\:mm\\:ss\.fff}}"
+                                                Width="90" />
+                            <DataGridTextColumn Header="Ошибка / диагностика"
+                                                Binding="{Binding ErrorMessage, Mode=OneWay}"
+                                                Width="220" />
+                            <DataGridTextColumn Header="Файл результата"
+                                                Binding="{Binding OutputFilePath, Mode=OneWay}"
+                                                Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

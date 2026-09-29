@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ImageGuard.Tests/ImageGuard.Tests.csproj" />
+  <Project Path="ImageGuard/ImageGuard.csproj" />
+</Solution>

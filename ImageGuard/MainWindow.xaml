@@ -1,0 +1,78 @@
+<Window x:Class="ImageGuard.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ImageGuard.ViewModels"
+        xmlns:views="clr-namespace:ImageGuard.Views"
+        Title="ImageGuard — защита цифровых изображений"
+        Width="1280"
+        Height="800"
+        MinWidth="1100"
+        MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}"
+        FontFamily="Segoe UI">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:ProtectViewModel}">
+            <views:ProtectView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VerifyViewModel}">
+            <views:VerifyView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:KeysViewModel}">
+            <views:KeysView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ResearchViewModel}">
+            <views:ResearchView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{DynamicResource SidebarBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Margin="24,28,20,22">
+                    <TextBlock Text="ImageGuard"
+                               Foreground="White"
+                               FontSize="25"
+                               FontWeight="Bold" />
+                    <TextBlock Text="Подпись + DCT watermark"
+                               Foreground="{DynamicResource SidebarMutedTextBrush}"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1">
+                    <Button Style="{StaticResource NavigationButton}"
+                            Command="{Binding ShowProtectCommand}"
+                            Content="Защита изображения" />
+                    <Button Style="{StaticResource NavigationButton}"
+                            Command="{Binding ShowVerifyCommand}"
+                            Content="Проверка изображения" />
+                    <Button Style="{StaticResource NavigationButton}"
+                            Command="{Binding ShowResearchCommand}"
+                            Content="Исследование" />
+                    <Button Style="{StaticResource NavigationButton}"
+                            Command="{Binding ShowKeysCommand}"
+                            Content="RSA-ключи" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="2"
+                           Text=".NET 8 · локальное приложение"
+                           Foreground="{DynamicResource SidebarMutedTextBrush}"
+                           Margin="24,16,16,24" />
+            </Grid>
+        </Border>
+
+        <ContentControl Grid.Column="1"
+                        Content="{Binding CurrentViewModel}" />
+    </Grid>
+</Window>
