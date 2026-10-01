@@ -37,5 +37,4 @@ public sealed record WatermarkEmbedResult(
 public sealed record WatermarkExtractionResult(
     Enums.WatermarkStatus Status,
     string? Text,
-    string? ErrorMessage,
-    bool[]? ExtractedBits = null);
+    string? ErrorMessage);

@@ -1,7 +1,6 @@
 using ImageGuard.Enums;
 using ImageGuard.Models;
 using ImageGuard.Services;
-using ImageGuard.Services.Verification;
 
 namespace ImageGuard.ViewModels;
 

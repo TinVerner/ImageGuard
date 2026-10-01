@@ -1,10 +1,5 @@
 using ImageGuard.Models;
-using ImageGuard.Services.Cryptography;
-using ImageGuard.Services.Experiments;
-using ImageGuard.Services.Imaging;
-using ImageGuard.Services.Transformations;
-using ImageGuard.Services.Verification;
-using ImageGuard.Services.Watermarking;
+using ImageGuard.Services;
 
 namespace ImageGuard.Tests;
 
@@ -12,63 +7,49 @@ internal sealed class TestServices
 {
     public TestServices()
     {
-        Hash = new HashService();
-        Keys = new KeyService(Hash);
-        Signatures = new DigitalSignatureService();
+        Crypto = new CryptoService();
+        Keys = new KeyService(Crypto);
         Documents = new SignatureDocumentService();
         Images = new ImageFileService();
         Colors = new ColorSpaceService();
-        TextCodec = new WatermarkTextCodec();
+        WatermarkCodec = new WatermarkCodec();
         Watermarks = new WatermarkService(
             new DctService(),
-            TextCodec,
-            Colors,
-            new SequentialBlockSelector());
+            WatermarkCodec,
+            Colors);
         Metrics = new ImageQualityMetricsService();
         Protection = new ProtectionService(
             Images,
             Watermarks,
             Metrics,
-            Hash,
+            Crypto,
             Keys,
-            Signatures,
             Documents);
         Verification = new VerificationService(
             Images,
             Watermarks,
-            Hash,
+            Crypto,
             Keys,
-            Signatures,
             Documents);
-        Transformations =
-        [
-            new JpegCompressionTransformation(),
-            new BrightnessTransformation(),
-            new ContrastTransformation(),
-            new GaussianNoiseTransformation(),
-            new ResizeTransformation(),
-            new CropTransformation(),
-            new RegionModificationTransformation()
-        ];
+        Transformations = ImageTransformations.CreateAll();
         Experiments = new ExperimentService(
             Images,
             Metrics,
             Verification,
-            TextCodec,
+            WatermarkCodec,
             Watermarks,
             Documents,
             Transformations);
     }
 
-    public IHashService Hash { get; }
+    public CryptoService Crypto { get; }
     public IKeyService Keys { get; }
-    public IDigitalSignatureService Signatures { get; }
     public ISignatureDocumentService Documents { get; }
     public IImageFileService Images { get; }
-    public IColorSpaceService Colors { get; }
-    public IWatermarkTextCodec TextCodec { get; }
+    public ColorSpaceService Colors { get; }
+    public WatermarkCodec WatermarkCodec { get; }
     public IWatermarkService Watermarks { get; }
-    public IImageQualityMetricsService Metrics { get; }
+    public ImageQualityMetricsService Metrics { get; }
     public IProtectionService Protection { get; }
     public IVerificationService Verification { get; }
     public IReadOnlyList<IImageTransformation> Transformations { get; }

@@ -5,13 +5,8 @@ using System.Text;
 using ImageGuard.Enums;
 using ImageGuard.Helpers;
 using ImageGuard.Models;
-using ImageGuard.Services.Cryptography;
-using ImageGuard.Services.Imaging;
-using ImageGuard.Services.Transformations;
-using ImageGuard.Services.Verification;
-using ImageGuard.Services.Watermarking;
 
-namespace ImageGuard.Services.Experiments;
+namespace ImageGuard.Services;
 
 public interface IExperimentService
 {
@@ -26,9 +21,9 @@ public interface IExperimentService
 
 public sealed class ExperimentService(
     IImageFileService imageFileService,
-    IImageQualityMetricsService metricsService,
+    ImageQualityMetricsService metricsService,
     IVerificationService verificationService,
-    IWatermarkTextCodec textCodec,
+    WatermarkCodec watermarkCodec,
     IWatermarkService watermarkService,
     ISignatureDocumentService documentService,
     IEnumerable<IImageTransformation> transformations) : IExperimentService
@@ -213,8 +208,7 @@ public sealed class ExperimentService(
 
         try
         {
-            var expected = BitSequenceConverter.ToBitsMsbFirst(
-                textCodec.Encode(expectedText));
+            var expected = watermarkCodec.EncodeBits(expectedText);
             var actual = watermarkService.ExtractRawBits(
                 image,
                 settings,

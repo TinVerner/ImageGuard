@@ -1,11 +1,5 @@
 using System.Windows;
 using ImageGuard.Services;
-using ImageGuard.Services.Cryptography;
-using ImageGuard.Services.Experiments;
-using ImageGuard.Services.Imaging;
-using ImageGuard.Services.Transformations;
-using ImageGuard.Services.Verification;
-using ImageGuard.Services.Watermarking;
 using ImageGuard.ViewModels;
 
 namespace ImageGuard;
@@ -16,49 +10,36 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        var hashService = new HashService();
-        var keyService = new KeyService(hashService);
-        var signatureService = new DigitalSignatureService();
+        var cryptoService = new CryptoService();
+        var keyService = new KeyService(cryptoService);
         var documentService = new SignatureDocumentService();
         var imageFileService = new ImageFileService();
         var colorSpaceService = new ColorSpaceService();
-        var textCodec = new WatermarkTextCodec();
+        var watermarkCodec = new WatermarkCodec();
         var watermarkService = new WatermarkService(
             new DctService(),
-            textCodec,
-            colorSpaceService,
-            new SequentialBlockSelector());
+            watermarkCodec,
+            colorSpaceService);
         var metricsService = new ImageQualityMetricsService();
         var protectionService = new ProtectionService(
             imageFileService,
             watermarkService,
             metricsService,
-            hashService,
+            cryptoService,
             keyService,
-            signatureService,
             documentService);
         var verificationService = new VerificationService(
             imageFileService,
             watermarkService,
-            hashService,
+            cryptoService,
             keyService,
-            signatureService,
             documentService);
-        IImageTransformation[] transformations =
-        [
-            new JpegCompressionTransformation(),
-            new BrightnessTransformation(),
-            new ContrastTransformation(),
-            new GaussianNoiseTransformation(),
-            new ResizeTransformation(),
-            new CropTransformation(),
-            new RegionModificationTransformation()
-        ];
+        var transformations = ImageTransformations.CreateAll();
         var experimentService = new ExperimentService(
             imageFileService,
             metricsService,
             verificationService,
-            textCodec,
+            watermarkCodec,
             watermarkService,
             documentService,
             transformations);
@@ -68,7 +49,7 @@ public partial class App : Application
             new ProtectViewModel(dialogs, imageFileService, watermarkService, protectionService),
             new VerifyViewModel(dialogs, verificationService),
             new KeysViewModel(dialogs, keyService),
-            new ResearchViewModel(dialogs, experimentService));
+            new ResearchViewModel(dialogs, experimentService, transformations));
 
         var window = new MainWindow { DataContext = mainViewModel };
         MainWindow = window;

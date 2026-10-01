@@ -31,12 +31,8 @@ ImageGuard — локальное WPF-приложение для защиты �
 ## Структура
 
 - `ImageGuard/Models`, `Enums` — модели запросов, результатов и статусов;
-- `Services/Imaging` — загрузка, сохранение, BGRA32, YCbCr, MSE и PSNR;
-- `Services/Watermarking` — DCT/IDCT, простой UTF-8 codec и встраивание;
-- `Services/Cryptography` — RSA-ключи, SHA-256, RSA PKCS#1 v1.5 и `.igsig`;
-- `Services/Verification` — полные pipelines защиты и проверки;
-- `Services/Transformations` — JPEG, яркость, контрастность, шум и геометрические преобразования;
-- `Services/Experiments` — серии экспериментов, MSE, PSNR, BER и CSV;
+- `Services` — работа с изображениями, DCT-watermark, криптография, защита,
+  проверка и экспериментальные преобразования;
 - `ViewModels`, `Views`, `Resources` — MVVM-интерфейс;
 - `ImageGuard.Tests` — unit и integration tests.
 

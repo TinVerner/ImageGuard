@@ -1,14 +1,8 @@
 using ImageGuard.Models;
 
-namespace ImageGuard.Services.Imaging;
+namespace ImageGuard.Services;
 
-public interface IColorSpaceService
-{
-    YCbCrPlanes ToYCbCr(ImagePixelData image);
-    ImagePixelData FromYCbCr(YCbCrPlanes planes, double dpiX, double dpiY);
-}
-
-public sealed class ColorSpaceService : IColorSpaceService
+public sealed class ColorSpaceService
 {
     public YCbCrPlanes ToYCbCr(ImagePixelData image)
     {

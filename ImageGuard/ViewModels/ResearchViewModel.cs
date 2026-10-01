@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using ImageGuard.Enums;
 using ImageGuard.Models;
 using ImageGuard.Services;
-using ImageGuard.Services.Experiments;
 
 namespace ImageGuard.ViewModels;
 
@@ -33,20 +32,24 @@ public sealed class ResearchViewModel : ObservableObject
     private double _progressValue;
     private bool _isBusy;
 
-    public ResearchViewModel(IFileDialogService dialogs, IExperimentService experiments)
+    public ResearchViewModel(
+        IFileDialogService dialogs,
+        IExperimentService experiments,
+        IEnumerable<IImageTransformation> transformations)
     {
         _dialogs = dialogs;
         _experiments = experiments;
-        Transformations =
-        [
-            new(ImageTransformationType.JpegCompression, "JPEG-сжатие"),
-            new(ImageTransformationType.Brightness, "Яркость"),
-            new(ImageTransformationType.Contrast, "Контрастность"),
-            new(ImageTransformationType.GaussianNoise, "Гауссов шум"),
-            new(ImageTransformationType.Resize, "Изменение размера"),
-            new(ImageTransformationType.Crop, "Обрезка"),
-            new(ImageTransformationType.RegionModification, "Изменение области")
-        ];
+        ArgumentNullException.ThrowIfNull(transformations);
+        Transformations = transformations
+            .Select(item => new TransformationOption(item.Type, item.DisplayName))
+            .ToArray();
+        if (Transformations.Count == 0)
+        {
+            throw new ArgumentException(
+                "Не зарегистрированы преобразования для исследований.",
+                nameof(transformations));
+        }
+
         _selectedTransformation = Transformations[0];
         SetDefaultParameter();
 

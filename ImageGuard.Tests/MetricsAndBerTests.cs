@@ -39,8 +39,7 @@ public sealed class MetricsAndBerTests
         var services = new TestServices();
         var settings = TestServices.ReliableSettings();
         var image = TestServices.CreateTexturedImage(256, 256);
-        var expected = BitSequenceConverter.ToBitsMsbFirst(
-            services.TextCodec.Encode("RAW-BER"));
+        var expected = services.WatermarkCodec.EncodeBits("RAW-BER");
         var embedded = services.Watermarks.Embed(image, "RAW-BER", settings);
 
         var actual = services.Watermarks.ExtractRawBits(
@@ -56,8 +55,7 @@ public sealed class MetricsAndBerTests
     public void ControlledRawBitError_ProducesNonZeroBer()
     {
         var services = new TestServices();
-        var packet = services.TextCodec.Encode("BIT-BER");
-        var expected = BitSequenceConverter.ToBitsMsbFirst(packet);
+        var expected = services.WatermarkCodec.EncodeBits("BIT-BER");
         var damaged = (bool[])expected.Clone();
         damaged[^1] = !damaged[^1];
 

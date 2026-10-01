@@ -2,7 +2,7 @@ using System.IO;
 using System.Security.Cryptography;
 using ImageGuard.Models;
 
-namespace ImageGuard.Services.Cryptography;
+namespace ImageGuard.Services;
 
 public interface IKeyService
 {
@@ -18,7 +18,7 @@ public interface IKeyService
     KeyInspectionResult Inspect(string path, string? password = null);
 }
 
-public sealed class KeyService(IHashService hashService) : IKeyService
+public sealed class KeyService(CryptoService cryptoService) : IKeyService
 {
     public KeyGenerationResult GenerateKeyPair(
         string directory,
@@ -105,7 +105,7 @@ public sealed class KeyService(IHashService hashService) : IKeyService
     public string GetFingerprint(RSA rsa)
     {
         ArgumentNullException.ThrowIfNull(rsa);
-        var digest = hashService.ComputeSha256(rsa.ExportSubjectPublicKeyInfo());
+        var digest = cryptoService.ComputeSha256(rsa.ExportSubjectPublicKeyInfo());
         return string.Join(':', Convert.ToHexString(digest).Chunk(2).Select(chars => new string(chars)));
     }
 

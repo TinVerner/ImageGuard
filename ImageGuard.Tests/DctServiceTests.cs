@@ -1,4 +1,4 @@
-using ImageGuard.Services.Watermarking;
+using ImageGuard.Services;
 
 namespace ImageGuard.Tests;
 

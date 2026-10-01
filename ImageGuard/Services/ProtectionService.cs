@@ -1,11 +1,8 @@
 using System.Diagnostics;
 using System.IO;
 using ImageGuard.Models;
-using ImageGuard.Services.Cryptography;
-using ImageGuard.Services.Imaging;
-using ImageGuard.Services.Watermarking;
 
-namespace ImageGuard.Services.Verification;
+namespace ImageGuard.Services;
 
 public interface IProtectionService
 {
@@ -19,10 +16,9 @@ public interface IProtectionService
 public sealed class ProtectionService(
     IImageFileService imageFileService,
     IWatermarkService watermarkService,
-    IImageQualityMetricsService metricsService,
-    IHashService hashService,
+    ImageQualityMetricsService metricsService,
+    CryptoService cryptoService,
     IKeyService keyService,
-    IDigitalSignatureService signatureService,
     ISignatureDocumentService documentService) : IProtectionService
 {
     public Task<ProtectionResult> ProtectAsync(
@@ -103,11 +99,11 @@ public sealed class ProtectionService(
             // Критический порядок: подписываются точные байты уже сохраненного файла,
             // а не BitmapSource или промежуточный пиксельный буфер.
             var savedBytes = File.ReadAllBytes(request.OutputImagePath);
-            var sha256 = hashService.ComputeSha256Hex(savedBytes);
+            var sha256 = cryptoService.ComputeSha256Hex(savedBytes);
             using var privateKey = keyService.LoadPrivateKey(
                 request.PrivateKeyPath,
                 request.PrivateKeyPassword);
-            var signature = signatureService.Sign(savedBytes, privateKey);
+            var signature = cryptoService.Sign(savedBytes, privateKey);
             progress?.Report(0.95);
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -131,7 +127,6 @@ public sealed class ProtectionService(
                 request.OutputImagePath,
                 request.SignatureOutputPath,
                 sha256,
-                request.WatermarkText,
                 watermarkMatches,
                 metrics.Mse,
                 metrics.Psnr,

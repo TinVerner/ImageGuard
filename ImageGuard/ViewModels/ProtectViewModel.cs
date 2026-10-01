@@ -4,9 +4,6 @@ using System.Windows.Media.Imaging;
 using ImageGuard.Enums;
 using ImageGuard.Models;
 using ImageGuard.Services;
-using ImageGuard.Services.Imaging;
-using ImageGuard.Services.Verification;
-using ImageGuard.Services.Watermarking;
 
 namespace ImageGuard.ViewModels;
 
@@ -58,7 +55,6 @@ public sealed class ProtectViewModel : ObservableObject
     }
 
     public WatermarkSettings WatermarkSettings { get; } = new();
-    public Array OutputFormats { get; } = Enum.GetValues<ImageOutputFormat>();
 
     public RelayCommand SelectImageCommand { get; }
     public RelayCommand SelectPrivateKeyCommand { get; }

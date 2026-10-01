@@ -1,11 +1,9 @@
 using System.Buffers.Binary;
 using System.IO;
 using ImageGuard.Enums;
-using ImageGuard.Helpers;
 using ImageGuard.Models;
-using ImageGuard.Services.Imaging;
 
-namespace ImageGuard.Services.Watermarking;
+namespace ImageGuard.Services;
 
 public interface IWatermarkService
 {
@@ -32,12 +30,11 @@ public interface IWatermarkService
 }
 
 public sealed class WatermarkService(
-    IDctService dctService,
-    IWatermarkTextCodec textCodec,
-    IColorSpaceService colorSpaceService,
-    IBlockSelector blockSelector) : IWatermarkService
+    DctService dctService,
+    WatermarkCodec codec,
+    ColorSpaceService colorSpaceService) : IWatermarkService
 {
-    private const int LengthPrefixBits = WatermarkTextCodec.LengthPrefixSize * 8;
+    private const int LengthPrefixBits = WatermarkCodec.LengthPrefixSize * 8;
     // The IDCT -> YCbCr/RGB -> YCbCr/DCT round-trip can reduce the coefficient
     // difference. This fixed margin compensates rounding; it is not adaptive,
     // and extraction still uses the user-selected Delta as its threshold.
@@ -46,7 +43,7 @@ public sealed class WatermarkService(
     public WatermarkCapacity CalculateCapacity(ImagePixelData image, string text)
     {
         ArgumentNullException.ThrowIfNull(image);
-        var data = textCodec.Encode(text);
+        var data = codec.Encode(text);
         var capacityBits = GetCapacityBits(image);
         return new(
             capacityBits,
@@ -66,8 +63,7 @@ public sealed class WatermarkService(
         ArgumentNullException.ThrowIfNull(settings);
         settings.Validate();
 
-        var data = textCodec.Encode(text);
-        var bits = BitSequenceConverter.ToBitsMsbFirst(data);
+        var bits = codec.EncodeBits(text);
         var capacity = CalculateCapacity(image, text);
         if (!capacity.Fits)
         {
@@ -80,7 +76,7 @@ public sealed class WatermarkService(
         var planes = colorSpaceService.ToYCbCr(image);
         var blocksX = image.Width / WatermarkSettings.BlockSize;
         var blocksY = image.Height / WatermarkSettings.BlockSize;
-        using var positions = blockSelector.Select(blocksX, blocksY).GetEnumerator();
+        using var positions = EnumerateBlocks(blocksX, blocksY).GetEnumerator();
         var modifiedBlocks = new HashSet<BlockPosition>();
 
         // One watermark bit is embedded into one complete 8x8 luminance block.
@@ -132,7 +128,7 @@ public sealed class WatermarkService(
         var planes = colorSpaceService.ToYCbCr(image);
         var blocksX = image.Width / WatermarkSettings.BlockSize;
         var blocksY = image.Height / WatermarkSettings.BlockSize;
-        using var positions = blockSelector.Select(blocksX, blocksY).GetEnumerator();
+        using var positions = EnumerateBlocks(blocksX, blocksY).GetEnumerator();
 
         if (!TryReadBits(
                 planes.Y,
@@ -147,7 +143,7 @@ public sealed class WatermarkService(
             return LowConfidence(ambiguousBlock, ambiguousDifference);
         }
 
-        var lengthBytes = BitSequenceConverter.ToBytesMsbFirst(lengthBits);
+        var lengthBytes = WatermarkCodec.ToBytesMsbFirst(lengthBits);
         var payloadLength = BinaryPrimitives.ReadUInt32BigEndian(lengthBytes);
         var maximumPayloadBytes = (capacityBits - LengthPrefixBits) / 8;
         if (payloadLength == 0 || payloadLength > maximumPayloadBytes)
@@ -181,12 +177,12 @@ public sealed class WatermarkService(
         var allBits = new bool[totalBits];
         Array.Copy(lengthBits, allBits, lengthBits.Length);
         Array.Copy(payloadBits, 0, allBits, lengthBits.Length, payloadBits.Length);
-        var decoded = textCodec.Decode(BitSequenceConverter.ToBytesMsbFirst(allBits));
+        var decoded = codec.DecodeBits(allBits);
         progress?.Report(1);
 
         return decoded.IsValid
-            ? new(WatermarkStatus.Valid, decoded.Text, null, allBits)
-            : new(WatermarkStatus.Error, null, decoded.ErrorMessage, allBits);
+            ? new(WatermarkStatus.Valid, decoded.Text, null)
+            : new(WatermarkStatus.Error, null, decoded.ErrorMessage);
     }
 
     public bool[] ExtractRawBits(
@@ -215,7 +211,7 @@ public sealed class WatermarkService(
         var planes = colorSpaceService.ToYCbCr(image);
         var blocksX = image.Width / WatermarkSettings.BlockSize;
         var blocksY = image.Height / WatermarkSettings.BlockSize;
-        using var positions = blockSelector.Select(blocksX, blocksY).GetEnumerator();
+        using var positions = EnumerateBlocks(blocksX, blocksY).GetEnumerator();
         if (!TryReadBits(
                 planes.Y,
                 positions,
@@ -348,6 +344,17 @@ public sealed class WatermarkService(
         image.Width / WatermarkSettings.BlockSize *
         (image.Height / WatermarkSettings.BlockSize);
 
+    private static IEnumerable<BlockPosition> EnumerateBlocks(int blocksX, int blocksY)
+    {
+        for (var blockRow = 0; blockRow < blocksY; blockRow++)
+        {
+            for (var blockColumn = 0; blockColumn < blocksX; blockColumn++)
+            {
+                yield return new(blockRow, blockColumn);
+            }
+        }
+    }
+
     private static double[,] ReadBlock(double[,] yPlane, BlockPosition position)
     {
         var block = new double[WatermarkSettings.BlockSize, WatermarkSettings.BlockSize];
@@ -408,4 +415,6 @@ public sealed class WatermarkService(
             }
         }
     }
+
+    private readonly record struct BlockPosition(int Row, int Column);
 }

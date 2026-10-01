@@ -2,15 +2,9 @@ using System.Buffers.Binary;
 using System.Text;
 using ImageGuard.Models;
 
-namespace ImageGuard.Services.Watermarking;
+namespace ImageGuard.Services;
 
-public interface IWatermarkTextCodec
-{
-    byte[] Encode(string text);
-    WatermarkTextDecodeResult Decode(ReadOnlySpan<byte> data);
-}
-
-public sealed class WatermarkTextCodec : IWatermarkTextCodec
+public sealed class WatermarkCodec
 {
     public const int LengthPrefixSize = 4;
 
@@ -33,6 +27,8 @@ public sealed class WatermarkTextCodec : IWatermarkTextCodec
         payload.CopyTo(data, LengthPrefixSize);
         return data;
     }
+
+    public bool[] EncodeBits(string text) => ToBitsMsbFirst(Encode(text));
 
     public WatermarkTextDecodeResult Decode(ReadOnlySpan<byte> data)
     {
@@ -63,5 +59,45 @@ public sealed class WatermarkTextCodec : IWatermarkTextCodec
         {
             return new(false, null, "Водяной знак содержит некорректный UTF-8.");
         }
+    }
+
+    public WatermarkTextDecodeResult DecodeBits(IReadOnlyList<bool> bits) =>
+        Decode(ToBytesMsbFirst(bits));
+
+    public static bool[] ToBitsMsbFirst(ReadOnlySpan<byte> bytes)
+    {
+        var bits = new bool[bytes.Length * 8];
+        for (var byteIndex = 0; byteIndex < bytes.Length; byteIndex++)
+        {
+            for (var bitIndex = 0; bitIndex < 8; bitIndex++)
+            {
+                bits[byteIndex * 8 + bitIndex] =
+                    (bytes[byteIndex] & (1 << (7 - bitIndex))) != 0;
+            }
+        }
+
+        return bits;
+    }
+
+    public static byte[] ToBytesMsbFirst(IReadOnlyList<bool> bits)
+    {
+        ArgumentNullException.ThrowIfNull(bits);
+        if (bits.Count % 8 != 0)
+        {
+            throw new ArgumentException(
+                "Количество битов должно быть кратно восьми.",
+                nameof(bits));
+        }
+
+        var bytes = new byte[bits.Count / 8];
+        for (var bitIndex = 0; bitIndex < bits.Count; bitIndex++)
+        {
+            if (bits[bitIndex])
+            {
+                bytes[bitIndex / 8] |= (byte)(1 << (7 - bitIndex % 8));
+            }
+        }
+
+        return bytes;
     }
 }

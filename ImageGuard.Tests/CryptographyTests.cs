@@ -8,7 +8,7 @@ public sealed class CryptographyTests
     [Fact]
     public void Sha256_KnownVector_MatchesStandardDigest()
     {
-        var hash = new TestServices().Hash.ComputeSha256Hex("abc"u8);
+        var hash = new TestServices().Crypto.ComputeSha256Hex("abc"u8);
 
         Assert.Equal(
             "BA7816BF8F01CFEA414140DE5DAE2223" +
@@ -22,7 +22,7 @@ public sealed class CryptographyTests
         var services = new TestServices();
         using var rsa = RSA.Create(2048);
         var data = "signed image bytes"u8.ToArray();
-        var signature = services.Signatures.Sign(data, rsa);
+        var signature = services.Crypto.Sign(data, rsa);
 
         Assert.True(rsa.VerifyData(
             data,
@@ -39,14 +39,14 @@ public sealed class CryptographyTests
             data,
             HashAlgorithmName.SHA256,
             RSASignaturePadding.Pkcs1);
-        Assert.True(services.Signatures.Verify(
+        Assert.True(services.Crypto.Verify(
             data,
             independentlyCreatedPkcs1Signature,
             rsa));
-        Assert.True(services.Signatures.Verify(data, signature, rsa));
+        Assert.True(services.Crypto.Verify(data, signature, rsa));
 
         data[0] ^= 0x01;
-        Assert.False(services.Signatures.Verify(data, signature, rsa));
+        Assert.False(services.Crypto.Verify(data, signature, rsa));
     }
 
     [Fact]

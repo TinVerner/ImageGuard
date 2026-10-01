@@ -1,13 +1,8 @@
 using ImageGuard.Models;
 
-namespace ImageGuard.Services.Imaging;
+namespace ImageGuard.Services;
 
-public interface IImageQualityMetricsService
-{
-    ImageQualityMetrics Calculate(ImagePixelData original, ImagePixelData modified);
-}
-
-public sealed class ImageQualityMetricsService : IImageQualityMetricsService
+public sealed class ImageQualityMetricsService
 {
     public ImageQualityMetrics Calculate(ImagePixelData original, ImagePixelData modified)
     {

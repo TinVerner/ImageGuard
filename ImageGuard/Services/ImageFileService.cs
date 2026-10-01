@@ -4,7 +4,7 @@ using System.Windows.Media.Imaging;
 using ImageGuard.Enums;
 using ImageGuard.Models;
 
-namespace ImageGuard.Services.Imaging;
+namespace ImageGuard.Services;
 
 public interface IImageFileService
 {

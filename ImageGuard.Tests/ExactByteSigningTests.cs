@@ -45,14 +45,14 @@ public sealed class ExactByteSigningTests
             var finalBytes = File.ReadAllBytes(outputPath);
             var document = services.Documents.Load(signaturePath);
             using var publicKey = services.Keys.LoadPublicKey(keys.PublicKeyPath);
-            Assert.Equal(services.Hash.ComputeSha256Hex(finalBytes), document.Sha256);
+            Assert.Equal(services.Crypto.ComputeSha256Hex(finalBytes), document.Sha256);
             Assert.Equal(SignatureDocument.CurrentAlgorithm, document.Algorithm);
             Assert.True(publicKey.VerifyData(
                 finalBytes,
                 Convert.FromBase64String(document.SignatureBase64),
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1));
-            Assert.True(services.Signatures.Verify(
+            Assert.True(services.Crypto.Verify(
                 finalBytes,
                 Convert.FromBase64String(document.SignatureBase64),
                 publicKey));
@@ -107,7 +107,7 @@ public sealed class ExactByteSigningTests
             using var publicKey = services.Keys.LoadPublicKey(keys.PublicKeyPath);
             bytes[^1] ^= 0x01;
 
-            Assert.False(services.Signatures.Verify(
+            Assert.False(services.Crypto.Verify(
                 bytes,
                 Convert.FromBase64String(document.SignatureBase64),
                 publicKey));

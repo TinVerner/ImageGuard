@@ -18,7 +18,6 @@ public sealed record VerificationResult(
     string? ExpectedKeyFingerprint,
     string? ExtractedWatermark,
     bool SignatureValid,
-    bool WatermarkDetected,
     TimeSpan ProcessingTime,
     string? ErrorMessage)
 {

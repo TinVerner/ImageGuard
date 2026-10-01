@@ -1,12 +1,6 @@
-namespace ImageGuard.Services.Watermarking;
+namespace ImageGuard.Services;
 
-public interface IDctService
-{
-    double[,] Forward(double[,] block);
-    double[,] Inverse(double[,] coefficients);
-}
-
-public sealed class DctService : IDctService
+public sealed class DctService
 {
     public const int Size = 8;
     private static readonly double[,] CosTable = BuildCosTable();

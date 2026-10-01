@@ -18,7 +18,6 @@ public sealed record ProtectionResult(
     string? OutputImagePath,
     string? SignaturePath,
     string? Sha256,
-    string? WatermarkText,
     bool WatermarkValidAfterSave,
     double? Mse,
     double? Psnr,
@@ -26,5 +25,5 @@ public sealed record ProtectionResult(
     string? ErrorMessage)
 {
     public static ProtectionResult Failure(TimeSpan elapsed, string error) =>
-        new(false, null, null, null, null, false, null, null, elapsed, error);
+        new(false, null, null, null, false, null, null, elapsed, error);
 }

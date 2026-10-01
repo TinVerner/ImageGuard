@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.Json;
 using ImageGuard.Models;
 
-namespace ImageGuard.Services.Cryptography;
+namespace ImageGuard.Services;
 
 public interface ISignatureDocumentService
 {

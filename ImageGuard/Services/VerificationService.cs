@@ -3,11 +3,8 @@ using System.IO;
 using System.Security.Cryptography;
 using ImageGuard.Enums;
 using ImageGuard.Models;
-using ImageGuard.Services.Cryptography;
-using ImageGuard.Services.Imaging;
-using ImageGuard.Services.Watermarking;
 
-namespace ImageGuard.Services.Verification;
+namespace ImageGuard.Services;
 
 public interface IVerificationService
 {
@@ -21,9 +18,8 @@ public interface IVerificationService
 public sealed class VerificationService(
     IImageFileService imageFileService,
     IWatermarkService watermarkService,
-    IHashService hashService,
+    CryptoService cryptoService,
     IKeyService keyService,
-    IDigitalSignatureService signatureService,
     ISignatureDocumentService documentService) : IVerificationService
 {
     public Task<VerificationResult> VerifyAsync(
@@ -64,7 +60,7 @@ public sealed class VerificationService(
                 }
 
                 fileBytes = File.ReadAllBytes(request.ImagePath);
-                currentHash = hashService.ComputeSha256Hex(fileBytes);
+                currentHash = cryptoService.ComputeSha256Hex(fileBytes);
                 progress?.Report(0.15);
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
@@ -130,7 +126,6 @@ public sealed class VerificationService(
                 signature.ExpectedFingerprint,
                 extraction.Text,
                 signature.IsValid,
-                extraction.Status == WatermarkStatus.Valid,
                 stopwatch.Elapsed,
                 notes.Count == 0 ? null : string.Join(Environment.NewLine, notes));
         }
@@ -258,7 +253,7 @@ public sealed class VerificationService(
                     "Не удалось прочитать точные байты проверяемого изображения.");
             }
 
-            var isValid = signatureService.Verify(fileBytes, signatureBytes, publicKey);
+            var isValid = cryptoService.Verify(fileBytes, signatureBytes, publicKey);
             return new(
                 isValid ? SignatureStatus.Valid : SignatureStatus.Invalid,
                 isValid,
@@ -346,7 +341,6 @@ public sealed class VerificationService(
             null,
             null,
             null,
-            false,
             false,
             elapsed,
             message);

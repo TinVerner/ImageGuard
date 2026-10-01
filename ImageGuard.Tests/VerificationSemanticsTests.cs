@@ -1,7 +1,6 @@
 using ImageGuard.Enums;
 using ImageGuard.Models;
-using ImageGuard.Services.Verification;
-using ImageGuard.Services.Watermarking;
+using ImageGuard.Services;
 
 namespace ImageGuard.Tests;
 
@@ -161,9 +160,8 @@ public sealed class VerificationSemanticsTests
         new VerificationService(
             services.Images,
             new ThrowingWatermarkService(),
-            services.Hash,
+            services.Crypto,
             services.Keys,
-            services.Signatures,
             services.Documents);
 
     private sealed class ThrowingWatermarkService : IWatermarkService

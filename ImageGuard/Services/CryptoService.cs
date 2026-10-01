@@ -1,15 +1,14 @@
 using System.Security.Cryptography;
 
-namespace ImageGuard.Services.Cryptography;
+namespace ImageGuard.Services;
 
-public interface IDigitalSignatureService
+public sealed class CryptoService
 {
-    byte[] Sign(ReadOnlySpan<byte> data, RSA privateKey);
-    bool Verify(ReadOnlySpan<byte> data, ReadOnlySpan<byte> signature, RSA publicKey);
-}
+    public byte[] ComputeSha256(ReadOnlySpan<byte> data) => SHA256.HashData(data);
 
-public sealed class DigitalSignatureService : IDigitalSignatureService
-{
+    public string ComputeSha256Hex(ReadOnlySpan<byte> data) =>
+        Convert.ToHexString(ComputeSha256(data));
+
     public byte[] Sign(ReadOnlySpan<byte> data, RSA privateKey)
     {
         ArgumentNullException.ThrowIfNull(privateKey);

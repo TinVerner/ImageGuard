@@ -1,5 +1,5 @@
 using ImageGuard.Models;
-using ImageGuard.Services.Transformations;
+using ImageGuard.Services;
 
 namespace ImageGuard.Tests;
 

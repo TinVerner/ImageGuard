@@ -13,9 +13,7 @@
     <Color x:Key="SidebarHoverColor">#735A56</Color>
     <Color x:Key="SidebarTextColor">#FFF9F5</Color>
     <Color x:Key="SidebarMutedTextColor">#E9DAD5</Color>
-    <Color x:Key="SuccessColor">#4F7A63</Color>
     <Color x:Key="WarningColor">#B96735</Color>
-    <Color x:Key="ErrorColor">#B83F36</Color>
     <Color x:Key="PrimaryTextColor">#3D302D</Color>
     <Color x:Key="SecondaryTextColor">#725E59</Color>
     <Color x:Key="BorderColor">#E4D1C7</Color>
@@ -35,9 +33,7 @@
     <SolidColorBrush x:Key="SidebarHoverBrush" Color="{StaticResource SidebarHoverColor}" />
     <SolidColorBrush x:Key="SidebarTextBrush" Color="{StaticResource SidebarTextColor}" />
     <SolidColorBrush x:Key="SidebarMutedTextBrush" Color="{StaticResource SidebarMutedTextColor}" />
-    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
-    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
     <SolidColorBrush x:Key="PrimaryTextBrush" Color="{StaticResource PrimaryTextColor}" />
     <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource SecondaryTextColor}" />
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
