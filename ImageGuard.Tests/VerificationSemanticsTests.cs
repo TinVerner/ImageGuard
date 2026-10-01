@@ -183,13 +183,6 @@ public sealed class VerificationSemanticsTests
             IProgress<double>? progress = null,
             CancellationToken cancellationToken = default) =>
             throw new InvalidOperationException("Synthetic watermark failure.");
-
-        public bool[] ExtractRawBits(
-            ImagePixelData image,
-            WatermarkSettings settings,
-            int bitCount,
-            CancellationToken cancellationToken = default) =>
-            throw new InvalidOperationException("Synthetic watermark failure.");
     }
 
     private sealed class VerificationFixture : IDisposable

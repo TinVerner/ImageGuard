@@ -20,10 +20,6 @@ public sealed class CancellationAndErrorsTests
             services.Verification.VerifyAsync(
                 new("", "", "", new()),
                 cancellationToken: cancellation.Token));
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            services.Experiments.RunAsync(
-                new("", "", "", "", null, new(), []),
-                cancellationToken: cancellation.Token));
     }
 
     [Fact]

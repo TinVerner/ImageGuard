@@ -8,7 +8,6 @@ public interface IFileDialogService
     string? OpenSignature();
     string? OpenPem();
     string? SaveImage(string suggestedName, bool jpeg);
-    string? SaveCsv(string suggestedName);
     string? SelectFolder();
 }
 
@@ -33,18 +32,6 @@ public sealed class FileDialogService : IFileDialogService
             Filter = jpeg
                 ? "JPEG (*.jpg)|*.jpg;*.jpeg"
                 : "PNG (*.png)|*.png"
-        };
-        return dialog.ShowDialog() == true ? dialog.FileName : null;
-    }
-
-    public string? SaveCsv(string suggestedName)
-    {
-        var dialog = new SaveFileDialog
-        {
-            FileName = suggestedName,
-            AddExtension = true,
-            DefaultExt = ".csv",
-            Filter = "CSV (*.csv)|*.csv"
         };
         return dialog.ShowDialog() == true ? dialog.FileName : null;
     }

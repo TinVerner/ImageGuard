@@ -1,5 +1,4 @@
 using System.Buffers.Binary;
-using System.IO;
 using ImageGuard.Enums;
 using ImageGuard.Models;
 
@@ -20,12 +19,6 @@ public interface IWatermarkService
         ImagePixelData image,
         WatermarkSettings settings,
         IProgress<double>? progress = null,
-        CancellationToken cancellationToken = default);
-
-    bool[] ExtractRawBits(
-        ImagePixelData image,
-        WatermarkSettings settings,
-        int bitCount,
         CancellationToken cancellationToken = default);
 }
 
@@ -183,51 +176,6 @@ public sealed class WatermarkService(
         return decoded.IsValid
             ? new(WatermarkStatus.Valid, decoded.Text, null)
             : new(WatermarkStatus.Error, null, decoded.ErrorMessage);
-    }
-
-    public bool[] ExtractRawBits(
-        ImagePixelData image,
-        WatermarkSettings settings,
-        int bitCount,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(image);
-        ArgumentNullException.ThrowIfNull(settings);
-        settings.Validate();
-
-        var capacityBits = GetCapacityBits(image);
-        if (bitCount < 0 || bitCount > capacityBits)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(bitCount),
-                $"Запрошено {bitCount} бит при емкости {capacityBits} бит.");
-        }
-
-        if (bitCount == 0)
-        {
-            return [];
-        }
-
-        var planes = colorSpaceService.ToYCbCr(image);
-        var blocksX = image.Width / WatermarkSettings.BlockSize;
-        var blocksY = image.Height / WatermarkSettings.BlockSize;
-        using var positions = EnumerateBlocks(blocksX, blocksY).GetEnumerator();
-        if (!TryReadBits(
-                planes.Y,
-                positions,
-                bitCount,
-                settings.Delta,
-                cancellationToken,
-                out var bits,
-                out var ambiguousBlock,
-                out var ambiguousDifference))
-        {
-            throw new InvalidDataException(
-                $"Бит в блоке {ambiguousBlock + 1} имеет низкую уверенность: " +
-                $"разность {ambiguousDifference:F2}.");
-        }
-
-        return bits;
     }
 
     private static void EmbedBit(double[,] coefficients, bool bit, double delta)

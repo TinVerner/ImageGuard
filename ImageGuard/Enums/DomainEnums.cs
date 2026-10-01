@@ -31,14 +31,3 @@ public enum OverallVerificationStatus
     Inconsistent,
     Error
 }
-
-public enum ImageTransformationType
-{
-    JpegCompression,
-    Brightness,
-    Contrast,
-    GaussianNoise,
-    Resize,
-    Crop,
-    RegionModification
-}

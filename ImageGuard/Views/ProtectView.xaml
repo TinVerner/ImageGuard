@@ -3,68 +3,71 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:helpers="clr-namespace:ImageGuard.Helpers"
              xmlns:enums="clr-namespace:ImageGuard.Enums">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Margin="28">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="22">
+            <StackPanel Margin="0,0,0,14">
                 <TextBlock Text="Защита изображения" FontSize="28" FontWeight="Bold" />
                 <TextBlock Style="{StaticResource MutedText}"
                            Margin="0,5,0,0"
-                           Text="Встраивание невидимого DCT-watermark и подпись окончательно сохраненного файла RSA PKCS#1 v1.5/SHA-256." />
+                           Text="Встраивание цифрового водяного знака и создание цифровой подписи." />
             </StackPanel>
 
-            <Grid Grid.Row="1">
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="Изображения" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Исходное изображение" FontWeight="SemiBold" Margin="0,0,0,7" />
+                            <Border Height="180"
+                                    Background="{DynamicResource SurfaceMutedBrush}"
+                                    CornerRadius="7">
+                                <Image Source="{Binding SourcePreview}" Stretch="Uniform" Margin="7" />
+                            </Border>
+                            <TextBlock Style="{StaticResource MutedText}"
+                                       Margin="0,7,0,2"
+                                       Text="{Binding ImageInfo}" />
+                            <Button Style="{StaticResource SecondaryButton}"
+                                    HorizontalAlignment="Left"
+                                    Command="{Binding SelectImageCommand}"
+                                    Content="Выбрать PNG или JPEG" />
+                            <TextBlock Text="{Binding InputImagePath}"
+                                       Style="{StaticResource MutedText}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Защищённое изображение" FontWeight="SemiBold" Margin="0,0,0,7" />
+                            <Border Height="180"
+                                    Background="{DynamicResource SurfaceMutedBrush}"
+                                    CornerRadius="7">
+                                <Image Source="{Binding ProtectedPreview}" Stretch="Uniform" Margin="7" />
+                            </Border>
+                            <TextBlock Text="Предпросмотр появится после сохранения файла."
+                                       Style="{StaticResource MutedText}"
+                                       Margin="0,7,0,2" />
+                            <TextBlock Text="{Binding OutputImagePath}"
+                                       Style="{StaticResource MutedText}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="18" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="9*" />
+                    <ColumnDefinition Width="14" />
+                    <ColumnDefinition Width="11*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource Card}">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource SectionTitle}" Text="Исходное изображение" />
-                        <Border Height="230" Background="{DynamicResource SurfaceMutedBrush}" CornerRadius="8">
-                            <Image Source="{Binding SourcePreview}" Stretch="Uniform" Margin="8" />
-                        </Border>
-                        <TextBlock Style="{StaticResource MutedText}"
-                                   Margin="0,10,0,8"
-                                   Text="{Binding ImageInfo}" />
-                        <Button Style="{StaticResource SecondaryButton}"
-                                Command="{Binding SelectImageCommand}"
-                                Content="Выбрать PNG или JPEG" />
-                        <TextBlock Text="{Binding InputImagePath}"
-                                   Style="{StaticResource MutedText}"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <Border Grid.Column="2" Style="{StaticResource Card}">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource SectionTitle}" Text="Защищенное изображение" />
-                        <Border Height="230" Background="{DynamicResource SurfaceMutedBrush}" CornerRadius="8">
-                            <Image Source="{Binding ProtectedPreview}" Stretch="Uniform" Margin="8" />
-                        </Border>
-                        <TextBlock Text="Предпросмотр появится после сохранения и повторной загрузки файла."
-                                   Style="{StaticResource MutedText}"
-                                   Margin="0,10,0,0" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="18" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0" Style="{StaticResource Card}">
+                <Border Grid.Column="0"
+                        Style="{StaticResource Card}"
+                        VerticalAlignment="Top">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionTitle}" Text="Водяной знак" />
                         <TextBlock Style="{StaticResource LabelText}" Text="Текст идентификатора" />
@@ -78,60 +81,119 @@
                         </TextBlock>
                         <TextBlock Text="{Binding CapacityInfo}"
                                    Style="{StaticResource MutedText}"
-                                   Margin="0,6,0,10" />
+                                   Margin="0,4,0,7" />
 
-                        <TextBlock Style="{StaticResource LabelText}"
-                                   Text="Delta — минимальная разность коэффициентов" />
-                        <TextBox Width="150"
-                                 HorizontalAlignment="Left"
-                                 Text="{Binding WatermarkSettings.Delta, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"
-                                 ToolTip="Фиксированная сила встраивания. Значение по умолчанию: 10." />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,12,4"
+                                       FontWeight="SemiBold"
+                                       Text="Delta" />
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding WatermarkSettings.Delta, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}"
+                                     ToolTip="Фиксированная сила встраивания. Значение по умолчанию: 10." />
+                        </Grid>
                         <TextBlock Style="{StaticResource MutedText}"
-                                   Text="Один бит записывается в один блок 8×8 через фиксированные коэффициенты F(2,3) и F(3,2)." />
+                                   Text="Один бит записывается в один блок 8×8 через коэффициенты F(2,3) и F(3,2)." />
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="2" Style="{StaticResource Card}">
+                <Border Grid.Column="2"
+                        Style="{StaticResource Card}"
+                        VerticalAlignment="Top">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionTitle}" Text="Ключ и сохранение" />
-                        <TextBlock Style="{StaticResource LabelText}" Text="Закрытый RSA-ключ" />
-                        <Button Style="{StaticResource SecondaryButton}"
-                                Command="{Binding SelectPrivateKeyCommand}"
-                                Content="Выбрать .private.pem" />
-                        <TextBlock Text="{Binding PrivateKeyPath}"
-                                   Style="{StaticResource MutedText}"
-                                   TextWrapping="Wrap" />
-                        <TextBlock Style="{StaticResource LabelText}" Text="Пароль закрытого ключа" />
-                        <PasswordBox helpers:PasswordBoxHelper.BoundPassword="{Binding PrivateKeyPassword, Mode=TwoWay}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="145" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="150" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                        <TextBlock Style="{StaticResource LabelText}" Text="Формат результата" />
-                        <ComboBox SelectedValue="{Binding OutputFormat}"
-                                  SelectedValuePath="Tag">
-                            <ComboBoxItem Content="PNG (рекомендуется)"
-                                          Tag="{x:Static enums:ImageOutputFormat.Png}" />
-                            <ComboBoxItem Content="JPEG"
-                                          Tag="{x:Static enums:ImageOutputFormat.Jpeg}" />
-                        </ComboBox>
-                        <StackPanel Visibility="{Binding IsJpeg, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Style="{StaticResource LabelText}" Text="Качество JPEG (1–100)" />
-                            <TextBox Text="{Binding JpegQuality, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
-                        </StackPanel>
+                            <TextBlock Grid.Row="0"
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       Text="Закрытый RSA-ключ" />
+                            <TextBlock Grid.Row="0" Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"
+                                       Text="{Binding PrivateKeyPath}"
+                                       Style="{StaticResource MutedText}"
+                                       TextTrimming="CharacterEllipsis" />
+                            <Button Grid.Row="0" Grid.Column="2"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding SelectPrivateKeyCommand}"
+                                    Content="Выбрать private.pem" />
 
-                        <Button Style="{StaticResource SecondaryButton}"
-                                Command="{Binding SelectOutputCommand}"
-                                Content="Выбрать файл результата" />
-                        <TextBlock Text="{Binding OutputImagePath}"
-                                   Style="{StaticResource MutedText}"
-                                   TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding SignatureOutputPath}"
-                                   Style="{StaticResource MutedText}"
-                                   Margin="0,4,0,0"
-                                   TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="1"
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       Text="Пароль" />
+                            <PasswordBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                                         helpers:PasswordBoxHelper.BoundPassword="{Binding PrivateKeyPassword, Mode=TwoWay}" />
+
+                            <TextBlock Grid.Row="2"
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       Text="Формат" />
+                            <ComboBox Grid.Row="2" Grid.Column="1"
+                                      Width="220"
+                                      HorizontalAlignment="Left"
+                                      SelectedValue="{Binding OutputFormat}"
+                                      SelectedValuePath="Tag">
+                                <ComboBoxItem Content="PNG (рекомендуется)"
+                                              Tag="{x:Static enums:ImageOutputFormat.Png}" />
+                                <ComboBoxItem Content="JPEG"
+                                              Tag="{x:Static enums:ImageOutputFormat.Jpeg}" />
+                            </ComboBox>
+                            <StackPanel Grid.Row="2" Grid.Column="2"
+                                        Visibility="{Binding IsJpeg, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Text="Качество JPEG" FontWeight="SemiBold" />
+                                <TextBox Text="{Binding JpegQuality, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="3"
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"
+                                       Text="Файл результата" />
+                            <TextBlock Grid.Row="3" Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"
+                                       Text="{Binding OutputImagePath}"
+                                       Style="{StaticResource MutedText}"
+                                       TextTrimming="CharacterEllipsis" />
+                            <Button Grid.Row="3" Grid.Column="2"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Command="{Binding SelectOutputCommand}"
+                                    Content="Выбрать файл" />
+
+                            <TextBlock Grid.Row="4"
+                                       VerticalAlignment="Top"
+                                       Margin="0,4,0,0"
+                                       FontWeight="SemiBold"
+                                       Text="Файл подписи" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
+                                       Margin="0,4,0,0"
+                                       Text="{Binding SignatureOutputPath}"
+                                       Style="{StaticResource MutedText}"
+                                       TextWrapping="Wrap" />
+                        </Grid>
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <Border Grid.Row="3" Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <WrapPanel>
                         <Button Style="{StaticResource PrimaryButton}"
@@ -150,12 +212,12 @@
                                  Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <TextBlock Text="{Binding StatusText}" Style="{StaticResource MutedText}" />
                     <TextBlock Text="{Binding ResultText}"
-                               Margin="0,10,0,0"
+                               Margin="0,7,0,0"
                                FontWeight="SemiBold"
                                TextWrapping="Wrap" />
-                    <Grid Margin="0,12,0,0">
+                    <Grid Margin="0,8,0,0">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -175,6 +237,6 @@
                     </Grid>
                 </StackPanel>
             </Border>
-        </Grid>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

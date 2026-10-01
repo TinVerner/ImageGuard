@@ -34,22 +34,12 @@ public partial class App : Application
             cryptoService,
             keyService,
             documentService);
-        var transformations = ImageTransformations.CreateAll();
-        var experimentService = new ExperimentService(
-            imageFileService,
-            metricsService,
-            verificationService,
-            watermarkCodec,
-            watermarkService,
-            documentService,
-            transformations);
         var dialogs = new FileDialogService();
 
         var mainViewModel = new MainViewModel(
             new ProtectViewModel(dialogs, imageFileService, watermarkService, protectionService),
             new VerifyViewModel(dialogs, verificationService),
-            new KeysViewModel(dialogs, keyService),
-            new ResearchViewModel(dialogs, experimentService, transformations));
+            new KeysViewModel(dialogs, keyService));
 
         var window = new MainWindow { DataContext = mainViewModel };
         MainWindow = window;

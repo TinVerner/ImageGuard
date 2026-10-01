@@ -3,20 +3,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:enums="clr-namespace:ImageGuard.Enums">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="28">
+        <StackPanel Margin="22">
             <TextBlock Text="Проверка изображения" FontSize="28" FontWeight="Bold" />
             <TextBlock Style="{StaticResource MutedText}"
-                       Margin="0,5,0,20"
-                       Text="RSA-подпись и встроенный watermark проверяются независимо друг от друга." />
+                       Margin="0,5,0,14"
+                       Text="Проверка цифровой подписи и извлечение цифрового водяного знака." />
 
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="Файлы проверки" />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="190" />
+                            <ColumnDefinition Width="155" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="170" />
+                            <ColumnDefinition Width="145" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -26,27 +26,34 @@
 
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" Text="Изображение" FontWeight="SemiBold" />
                         <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"
+                                   Margin="0,0,8,0"
                                    Text="{Binding ImagePath}" TextWrapping="Wrap"
-                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   TextTrimming="CharacterEllipsis" />
                         <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource SecondaryButton}"
                                 Command="{Binding SelectImageCommand}" Content="Выбрать..." />
 
                         <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="Подпись .igsig" FontWeight="SemiBold" />
                         <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"
+                                   Margin="0,0,8,0"
                                    Text="{Binding SignaturePath}" TextWrapping="Wrap"
-                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   TextTrimming="CharacterEllipsis" />
                         <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource SecondaryButton}"
                                 Command="{Binding SelectSignatureCommand}" Content="Выбрать..." />
 
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="Открытый RSA-ключ" FontWeight="SemiBold" />
                         <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center"
+                                   Margin="0,0,8,0"
                                    Text="{Binding PublicKeyPath}" TextWrapping="Wrap"
-                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                   TextTrimming="CharacterEllipsis" />
                         <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource SecondaryButton}"
                                 Command="{Binding SelectPublicKeyCommand}" Content="Выбрать..." />
                     </Grid>
 
-                    <WrapPanel Margin="0,14,0,4">
+                    <WrapPanel Margin="0,8,0,2"
+                               HorizontalAlignment="Right">
                         <Button Style="{StaticResource PrimaryButton}"
                                 Command="{Binding VerifyCommand}"
                                 ToolTip="Сначала выберите изображение, .igsig и открытый RSA-ключ."
@@ -56,7 +63,7 @@
                                 Content="Отмена" />
                     </WrapPanel>
                     <ProgressBar Height="5"
-                                 Margin="0,8,0,8"
+                                 Margin="0,6,0,6"
                                  Minimum="0"
                                  Maximum="100"
                                  Value="{Binding ProgressValue, Mode=OneWay}"
@@ -68,31 +75,32 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="14" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource Card}">
+                <Border Grid.Column="0"
+                        Style="{StaticResource Card}"
+                        VerticalAlignment="Top">
                     <StackPanel>
                         <TextBlock Text="Цифровая подпись" Style="{StaticResource SectionTitle}" />
-                        <TextBlock Text="{Binding SignatureText}" FontSize="21" FontWeight="SemiBold" />
-                        <TextBlock Style="{StaticResource MutedText}"
-                                   Margin="0,8,0,0"
-                                   Text="Проверяется RSA.VerifyData с SHA-256 и PKCS#1 v1.5." />
+                        <TextBlock Text="{Binding SignatureText}" FontSize="19" FontWeight="SemiBold" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="2" Style="{StaticResource Card}">
+                <Border Grid.Column="2"
+                        Style="{StaticResource Card}"
+                        VerticalAlignment="Top">
                     <StackPanel>
                         <TextBlock Text="Цифровой водяной знак" Style="{StaticResource SectionTitle}" />
-                        <TextBlock Text="{Binding WatermarkText}" FontSize="21" FontWeight="SemiBold" />
-                        <TextBlock Style="{StaticResource MutedText}" Margin="0,8,0,0">
-                            <Run Text="Извлеченный текст: " />
+                        <TextBlock Text="{Binding WatermarkText}" FontSize="19" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource MutedText}" Margin="0,5,0,0">
+                            <Run Text="Текст: " />
                             <Run Text="{Binding ExtractedWatermark, Mode=OneWay}" FontWeight="SemiBold" />
                         </TextBlock>
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <Border Padding="20" CornerRadius="10" Margin="0,0,0,14">
+            <Border Padding="14" CornerRadius="9" Margin="0,0,0,10">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background" Value="{DynamicResource ErrorSurfaceBrush}" />
@@ -112,34 +120,53 @@
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <StackPanel>
-                    <TextBlock Text="Общий итог" FontWeight="SemiBold" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Общий результат" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding OverallText}"
-                               FontSize="19"
+                               Grid.Column="1"
+                               FontSize="17"
                                FontWeight="SemiBold"
-                               Margin="0,5,0,0"
                                TextWrapping="Wrap" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="Технические сведения" />
-                    <TextBlock Style="{StaticResource LabelText}" Text="Текущий SHA-256" />
-                    <TextBlock Text="{Binding CurrentSha256}" TextWrapping="Wrap" />
-                    <TextBlock Style="{StaticResource LabelText}" Text="SHA-256 из .igsig" />
-                    <TextBlock Text="{Binding StoredSha256}" TextWrapping="Wrap" />
-                    <TextBlock Style="{StaticResource LabelText}" Text="Fingerprint выбранного ключа" />
-                    <TextBlock Text="{Binding ActualFingerprint}" TextWrapping="Wrap" />
-                    <TextBlock Style="{StaticResource LabelText}" Text="Fingerprint из .igsig" />
-                    <TextBlock Text="{Binding ExpectedFingerprint}" TextWrapping="Wrap" />
-                    <TextBlock Style="{StaticResource LabelText}" Text="Совпадение fingerprint" />
-                    <TextBlock Text="{Binding FingerprintMatchText}" TextWrapping="Wrap" />
-                    <TextBlock Style="{StaticResource LabelText}" Text="Время обработки" />
-                    <TextBlock Text="{Binding ProcessingTime}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" FontWeight="SemiBold" Text="SHA-256" Margin="0,2,12,5" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentSha256}" TextWrapping="Wrap" Margin="0,2,0,5" />
+                        <TextBlock Grid.Row="1" FontWeight="SemiBold" Text="SHA-256 из .igsig" Margin="0,2,12,5" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StoredSha256}" TextWrapping="Wrap" Margin="0,2,0,5" />
+                        <TextBlock Grid.Row="2" FontWeight="SemiBold" Text="Fingerprint выбранного ключа" Margin="0,2,12,5" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ActualFingerprint}" TextWrapping="Wrap" Margin="0,2,0,5" />
+                        <TextBlock Grid.Row="3" FontWeight="SemiBold" Text="Fingerprint из .igsig" Margin="0,2,12,5" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ExpectedFingerprint}" TextWrapping="Wrap" Margin="0,2,0,5" />
+                        <TextBlock Grid.Row="4" FontWeight="SemiBold" Text="Совпадение fingerprint" Margin="0,2,12,5" />
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding FingerprintMatchText}" Margin="0,2,0,5" />
+                        <TextBlock Grid.Row="5" FontWeight="SemiBold" Text="Время обработки" Margin="0,2,12,0" />
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ProcessingTime}" Margin="0,2,0,0" />
+                    </Grid>
                     <TextBlock Text="{Binding Details}"
                                Foreground="{DynamicResource WarningBrush}"
-                               Margin="0,10,0,0"
+                               Margin="0,7,0,0"
                                TextWrapping="Wrap" />
                 </StackPanel>
             </Border>

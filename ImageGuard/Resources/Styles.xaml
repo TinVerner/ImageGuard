@@ -9,8 +9,8 @@
 
     <Style TargetType="TextBox">
         <Setter Property="FontFamily" Value="Segoe UI" />
-        <Setter Property="Padding" Value="10,7" />
-        <Setter Property="Margin" Value="0,4,0,10" />
+        <Setter Property="Padding" Value="9,6" />
+        <Setter Property="Margin" Value="0,3,0,8" />
         <Setter Property="Background" Value="{DynamicResource CardBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -20,8 +20,8 @@
 
     <Style TargetType="PasswordBox">
         <Setter Property="FontFamily" Value="Segoe UI" />
-        <Setter Property="Padding" Value="10,7" />
-        <Setter Property="Margin" Value="0,4,0,10" />
+        <Setter Property="Padding" Value="9,6" />
+        <Setter Property="Margin" Value="0,3,0,8" />
         <Setter Property="Background" Value="{DynamicResource CardBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -65,8 +65,8 @@
 
     <Style TargetType="ComboBox">
         <Setter Property="FontFamily" Value="Segoe UI" />
-        <Setter Property="Padding" Value="11,8" />
-        <Setter Property="Margin" Value="0,4,0,10" />
+        <Setter Property="Padding" Value="10,7" />
+        <Setter Property="Margin" Value="0,3,0,8" />
         <Setter Property="Background" Value="{DynamicResource CardBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -182,8 +182,8 @@
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="White" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="18,10" />
-        <Setter Property="Margin" Value="0,6,8,6" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="Margin" Value="0,4,8,4" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
@@ -240,6 +240,11 @@
             </Setter.Value>
         </Setter>
         <Style.Triggers>
+            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource SidebarHoverBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource SidebarHoverBrush}" />
                 <Setter Property="Foreground" Value="White" />
@@ -251,20 +256,20 @@
         <Setter Property="Background" Value="{DynamicResource CardBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
-        <Setter Property="Padding" Value="18" />
-        <Setter Property="Margin" Value="0,0,0,14" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="15" />
+        <Setter Property="Margin" Value="0,0,0,10" />
     </Style>
 
     <Style x:Key="SectionTitle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="17" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Margin" Value="0,0,0,9" />
     </Style>
 
     <Style x:Key="LabelText" TargetType="TextBlock">
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Margin" Value="0,6,0,0" />
+        <Setter Property="Margin" Value="0,4,0,0" />
     </Style>
 
     <Style x:Key="MutedText" TargetType="TextBlock">
@@ -276,22 +281,5 @@
         <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Background" Value="{DynamicResource SurfaceMutedBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-    </Style>
-
-    <Style TargetType="DataGrid">
-        <Setter Property="Background" Value="{DynamicResource CardBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="RowBackground" Value="{DynamicResource CardBrush}" />
-        <Setter Property="AlternatingRowBackground" Value="{DynamicResource BackgroundBrush}" />
-    </Style>
-
-    <Style TargetType="DataGridColumnHeader">
-        <Setter Property="Background" Value="{DynamicResource SurfaceMutedBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Padding" Value="8" />
     </Style>
 </ResourceDictionary>

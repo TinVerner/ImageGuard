@@ -4,10 +4,10 @@
         xmlns:vm="clr-namespace:ImageGuard.ViewModels"
         xmlns:views="clr-namespace:ImageGuard.Views"
         Title="ImageGuard — защита цифровых изображений"
-        Width="1280"
-        Height="800"
-        MinWidth="1100"
-        MinHeight="700"
+        Width="1180"
+        Height="760"
+        MinWidth="1000"
+        MinHeight="650"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}"
         FontFamily="Segoe UI">
@@ -21,14 +21,11 @@
         <DataTemplate DataType="{x:Type vm:KeysViewModel}">
             <views:KeysView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:ResearchViewModel}">
-            <views:ResearchView />
-        </DataTemplate>
     </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250" />
+            <ColumnDefinition Width="230" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -37,38 +34,34 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Margin="24,28,20,22">
+                <StackPanel Margin="22,24,18,18">
                     <TextBlock Text="ImageGuard"
                                Foreground="White"
                                FontSize="25"
                                FontWeight="Bold" />
-                    <TextBlock Text="Подпись + DCT watermark"
-                               Foreground="{DynamicResource SidebarMutedTextBrush}"
-                               Margin="0,4,0,0" />
                 </StackPanel>
 
                 <StackPanel Grid.Row="1">
                     <Button Style="{StaticResource NavigationButton}"
                             Command="{Binding ShowProtectCommand}"
+                            Tag="{Binding IsProtectActive}"
                             Content="Защита изображения" />
                     <Button Style="{StaticResource NavigationButton}"
                             Command="{Binding ShowVerifyCommand}"
+                            Tag="{Binding IsVerifyActive}"
                             Content="Проверка изображения" />
-                    <Button Style="{StaticResource NavigationButton}"
-                            Command="{Binding ShowResearchCommand}"
-                            Content="Исследование" />
+                    <TextBlock Text="Исследование"
+                               Foreground="{DynamicResource SidebarMutedTextBrush}"
+                               FontSize="14"
+                               Margin="28,16,16,16" />
                     <Button Style="{StaticResource NavigationButton}"
                             Command="{Binding ShowKeysCommand}"
+                            Tag="{Binding IsKeysActive}"
                             Content="RSA-ключи" />
                 </StackPanel>
 
-                <TextBlock Grid.Row="2"
-                           Text=".NET 8 · локальное приложение"
-                           Foreground="{DynamicResource SidebarMutedTextBrush}"
-                           Margin="24,16,16,24" />
             </Grid>
         </Border>
 

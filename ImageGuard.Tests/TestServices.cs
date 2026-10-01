@@ -31,15 +31,6 @@ internal sealed class TestServices
             Crypto,
             Keys,
             Documents);
-        Transformations = ImageTransformations.CreateAll();
-        Experiments = new ExperimentService(
-            Images,
-            Metrics,
-            Verification,
-            WatermarkCodec,
-            Watermarks,
-            Documents,
-            Transformations);
     }
 
     public CryptoService Crypto { get; }
@@ -52,8 +43,6 @@ internal sealed class TestServices
     public ImageQualityMetricsService Metrics { get; }
     public IProtectionService Protection { get; }
     public IVerificationService Verification { get; }
-    public IReadOnlyList<IImageTransformation> Transformations { get; }
-    public IExperimentService Experiments { get; }
 
     public static ImagePixelData CreateTexturedImage(int width = 192, int height = 192)
     {
