@@ -68,7 +68,10 @@ public sealed class SignatureDocumentService : ISignatureDocumentService
             throw new NotSupportedException("Версия файла подписи не поддерживается.");
         }
 
-        if (!string.Equals(document.Algorithm, "RSA-PSS", StringComparison.Ordinal) ||
+        if (!string.Equals(
+                document.Algorithm,
+                SignatureDocument.CurrentAlgorithm,
+                StringComparison.Ordinal) ||
             !string.Equals(document.HashAlgorithm, "SHA-256", StringComparison.Ordinal))
         {
             throw new NotSupportedException("Алгоритм файла подписи не поддерживается.");

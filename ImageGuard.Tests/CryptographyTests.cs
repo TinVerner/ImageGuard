@@ -17,13 +17,32 @@ public sealed class CryptographyTests
     }
 
     [Fact]
-    public void SignAndVerify_DetectsChangedData()
+    public void SignAndVerify_UsesPkcs1V15AndDetectsChangedData()
     {
         var services = new TestServices();
         using var rsa = RSA.Create(2048);
         var data = "signed image bytes"u8.ToArray();
         var signature = services.Signatures.Sign(data, rsa);
 
+        Assert.True(rsa.VerifyData(
+            data,
+            signature,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1));
+        Assert.False(rsa.VerifyData(
+            data,
+            signature,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pss));
+
+        var independentlyCreatedPkcs1Signature = rsa.SignData(
+            data,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        Assert.True(services.Signatures.Verify(
+            data,
+            independentlyCreatedPkcs1Signature,
+            rsa));
         Assert.True(services.Signatures.Verify(data, signature, rsa));
 
         data[0] ^= 0x01;
@@ -49,12 +68,33 @@ public sealed class CryptographyTests
 
         Assert.Equal(expected.Version, actual.Version);
         Assert.Equal(expected.Algorithm, actual.Algorithm);
+        Assert.Equal(SignatureDocument.CurrentAlgorithm, actual.Algorithm);
         Assert.Equal(expected.HashAlgorithm, actual.HashAlgorithm);
         Assert.Equal(expected.KeySize, actual.KeySize);
         Assert.Equal(expected.ProtectedFileName, actual.ProtectedFileName);
         Assert.Equal(expected.SignatureBase64, actual.SignatureBase64);
         Assert.Equal(expected.PublicKeyFingerprint, actual.PublicKeyFingerprint);
         Assert.Equal(expected.WatermarkDelta, actual.WatermarkDelta);
+    }
+
+    [Fact]
+    public void SignatureDocument_OldPssAlgorithm_IsRejectedWithoutVersionChange()
+    {
+        var services = new TestServices();
+        var document = new SignatureDocument
+        {
+            Algorithm = "RSA-PSS",
+            KeySize = 2048,
+            CreatedUtc = DateTimeOffset.Parse("2026-09-26T12:00:00Z"),
+            ProtectedFileName = "protected.png",
+            Sha256 = "AABB",
+            SignatureBase64 = "AQID",
+            PublicKeyFingerprint = "AA:BB",
+            WatermarkDelta = 20
+        };
+
+        Assert.Throws<NotSupportedException>(() =>
+            services.Documents.Deserialize(services.Documents.Serialize(document)));
     }
 
     [Fact]

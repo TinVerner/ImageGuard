@@ -77,7 +77,7 @@
                         <TextBlock Text="{Binding SignatureText}" FontSize="21" FontWeight="SemiBold" />
                         <TextBlock Style="{StaticResource MutedText}"
                                    Margin="0,8,0,0"
-                                   Text="Проверяется RSA.VerifyData с SHA-256 и PSS." />
+                                   Text="Проверяется RSA.VerifyData с SHA-256 и PKCS#1 v1.5." />
                     </StackPanel>
                 </Border>
                 <Border Grid.Column="2" Style="{StaticResource Card}">

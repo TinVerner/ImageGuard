@@ -5,12 +5,13 @@ namespace ImageGuard.Models;
 public sealed class SignatureDocument
 {
     public const int CurrentVersion = 3;
+    public const string CurrentAlgorithm = "RSA-SHA256-PKCS1-v1_5";
 
     [JsonPropertyName("version")]
     public int Version { get; set; } = CurrentVersion;
 
     [JsonPropertyName("algorithm")]
-    public string Algorithm { get; set; } = "RSA-PSS";
+    public string Algorithm { get; set; } = CurrentAlgorithm;
 
     [JsonPropertyName("hashAlgorithm")]
     public string HashAlgorithm { get; set; } = "SHA-256";

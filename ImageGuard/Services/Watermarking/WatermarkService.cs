@@ -38,8 +38,9 @@ public sealed class WatermarkService(
     IBlockSelector blockSelector) : IWatermarkService
 {
     private const int LengthPrefixBits = WatermarkTextCodec.LengthPrefixSize * 8;
-    // Fixed safety margin compensates IDCT and RGB byte rounding.
-    // It is not adaptive: extraction still uses the user-selected Delta.
+    // The IDCT -> YCbCr/RGB -> YCbCr/DCT round-trip can reduce the coefficient
+    // difference. This fixed margin compensates rounding; it is not adaptive,
+    // and extraction still uses the user-selected Delta as its threshold.
     private const double NumericalMargin = 25.0;
 
     public WatermarkCapacity CalculateCapacity(ImagePixelData image, string text)

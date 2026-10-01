@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using ImageGuard.Enums;
 using ImageGuard.Models;
 
@@ -45,6 +46,12 @@ public sealed class ExactByteSigningTests
             var document = services.Documents.Load(signaturePath);
             using var publicKey = services.Keys.LoadPublicKey(keys.PublicKeyPath);
             Assert.Equal(services.Hash.ComputeSha256Hex(finalBytes), document.Sha256);
+            Assert.Equal(SignatureDocument.CurrentAlgorithm, document.Algorithm);
+            Assert.True(publicKey.VerifyData(
+                finalBytes,
+                Convert.FromBase64String(document.SignatureBase64),
+                HashAlgorithmName.SHA256,
+                RSASignaturePadding.Pkcs1));
             Assert.True(services.Signatures.Verify(
                 finalBytes,
                 Convert.FromBase64String(document.SignatureBase64),

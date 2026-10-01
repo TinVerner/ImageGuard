@@ -15,11 +15,11 @@ public sealed class DigitalSignatureService : IDigitalSignatureService
         ArgumentNullException.ThrowIfNull(privateKey);
 
         // RSA подписывает SHA-256-хеш точных байтов сохраненного файла.
-        // PSS используется как современная вероятностная схема дополнения.
+        // Используется схема дополнения PKCS#1 v1.5.
         return privateKey.SignData(
             data,
             HashAlgorithmName.SHA256,
-            RSASignaturePadding.Pss);
+            RSASignaturePadding.Pkcs1);
     }
 
     public bool Verify(ReadOnlySpan<byte> data, ReadOnlySpan<byte> signature, RSA publicKey)
@@ -29,6 +29,6 @@ public sealed class DigitalSignatureService : IDigitalSignatureService
             data,
             signature,
             HashAlgorithmName.SHA256,
-            RSASignaturePadding.Pss);
+            RSASignaturePadding.Pkcs1);
     }
 }

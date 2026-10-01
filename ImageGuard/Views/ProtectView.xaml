@@ -16,7 +16,7 @@
                 <TextBlock Text="Защита изображения" FontSize="28" FontWeight="Bold" />
                 <TextBlock Style="{StaticResource MutedText}"
                            Margin="0,5,0,0"
-                           Text="Встраивание невидимого DCT-watermark и подпись окончательно сохраненного файла RSA-PSS/SHA-256." />
+                           Text="Встраивание невидимого DCT-watermark и подпись окончательно сохраненного файла RSA PKCS#1 v1.5/SHA-256." />
             </StackPanel>
 
             <Grid Grid.Row="1">

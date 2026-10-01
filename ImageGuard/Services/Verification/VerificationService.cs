@@ -266,7 +266,9 @@ public sealed class VerificationService(
                 actualFingerprint,
                 document.PublicKeyFingerprint,
                 document.WatermarkDelta,
-                isValid ? null : "RSA-PSS подпись проверяемых байтов недействительна.");
+                isValid
+                    ? null
+                    : "RSA PKCS#1 v1.5 подпись проверяемых байтов недействительна.");
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
