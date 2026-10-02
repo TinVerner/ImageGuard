@@ -129,39 +129,27 @@ public sealed class ProtectionService(
     private static void ValidateRequest(ProtectionRequest request)
     {
         if (!File.Exists(request.InputImagePath))
-        {
             throw new FileNotFoundException("Исходное изображение не найдено.", request.InputImagePath);
-        }
 
         if (!File.Exists(request.PrivateKeyPath))
-        {
             throw new FileNotFoundException("Закрытый RSA-ключ не найден.", request.PrivateKeyPath);
-        }
 
         if (string.IsNullOrWhiteSpace(request.WatermarkText))
-        {
             throw new ArgumentException("Введите текст цифрового водяного знака.");
-        }
 
         if (string.IsNullOrWhiteSpace(request.OutputImagePath) ||
             string.IsNullOrWhiteSpace(request.SignatureOutputPath))
-        {
             throw new ArgumentException("Укажите пути защищенного изображения и файла подписи.");
-        }
 
         if (Path.GetFullPath(request.InputImagePath).Equals(
                 Path.GetFullPath(request.OutputImagePath),
                 StringComparison.OrdinalIgnoreCase))
-        {
             throw new ArgumentException("Нельзя перезаписывать исходное изображение. Выберите другой путь.");
-        }
 
         if (Path.GetFullPath(request.OutputImagePath).Equals(
                 Path.GetFullPath(request.SignatureOutputPath),
                 StringComparison.OrdinalIgnoreCase))
-        {
             throw new ArgumentException("Изображение и подпись должны сохраняться в разные файлы.");
-        }
 
         request.WatermarkSettings.Validate();
     }

@@ -62,9 +62,7 @@ public sealed class WatermarkService
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (!positions.MoveNext())
-            {
                 throw new InvalidOperationException("Недостаточно полных блоков 8x8.");
-            }
 
             var position = positions.Current;
             modifiedBlocks.Add(position);
@@ -148,9 +146,7 @@ public sealed class WatermarkService
                 progress,
                 LengthPrefixBits,
                 totalBits))
-        {
             return LowConfidence(ambiguousBlock, ambiguousDifference);
-        }
 
         var allBits = new bool[totalBits];
         Array.Copy(lengthBits, allBits, lengthBits.Length);
@@ -188,18 +184,14 @@ public sealed class WatermarkService
     public WatermarkTextDecodeResult Decode(ReadOnlySpan<byte> data)
     {
         if (data.Length < LengthPrefixSize)
-        {
             return new(false, null, "Недостаточно данных для чтения длины водяного знака.");
-        }
 
         var payloadLength = BinaryPrimitives.ReadUInt32BigEndian(
             data[..LengthPrefixSize]);
         if (payloadLength == 0 ||
             payloadLength > int.MaxValue ||
             payloadLength > data.Length - LengthPrefixSize)
-        {
             return new(false, null, "Длина водяного знака некорректна.");
-        }
 
         try
         {
@@ -248,9 +240,7 @@ public sealed class WatermarkService
         for (var bitIndex = 0; bitIndex < bits.Count; bitIndex++)
         {
             if (bits[bitIndex])
-            {
                 bytes[bitIndex / 8] |= (byte)(1 << (7 - bitIndex % 8));
-            }
         }
 
         return bytes;
@@ -274,7 +264,6 @@ public sealed class WatermarkService
                 var g = image.Pixels[pixelIndex + 1];
                 var r = image.Pixels[pixelIndex + 2];
 
-                // BT.601: watermarking uses Y; Cb and Cr preserve color.
                 yPlane[row, column] = 0.299 * r + 0.587 * g + 0.114 * b;
                 cbPlane[row, column] =
                     -0.168736 * r - 0.331264 * g + 0.5 * b + 128;
@@ -330,9 +319,7 @@ public sealed class WatermarkService
                 for (var x = 0; x < Size; x++)
                 {
                     for (var y = 0; y < Size; y++)
-                    {
                         sum += (block[x, y] - 128.0) * CosTable[x, u] * CosTable[y, v];
-                    }
                 }
 
                 coefficients[u, v] = 0.25 * Scale[u] * Scale[v] * sum;
@@ -419,9 +406,7 @@ public sealed class WatermarkService
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (!positions.MoveNext())
-            {
                 throw new InvalidOperationException("Недостаточно полных блоков 8x8.");
-            }
 
             var coefficients = Forward(ReadBlock(yPlane, positions.Current));
             var difference =
@@ -486,9 +471,7 @@ public sealed class WatermarkService
         for (var blockRow = 0; blockRow < blocksY; blockRow++)
         {
             for (var blockColumn = 0; blockColumn < blocksX; blockColumn++)
-            {
                 yield return new(blockRow, blockColumn);
-            }
         }
     }
 
@@ -500,9 +483,7 @@ public sealed class WatermarkService
         for (var row = 0; row < WatermarkSettings.BlockSize; row++)
         {
             for (var column = 0; column < WatermarkSettings.BlockSize; column++)
-            {
                 block[row, column] = yPlane[startRow + row, startColumn + column];
-            }
         }
 
         return block;

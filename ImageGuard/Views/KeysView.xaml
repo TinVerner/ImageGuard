@@ -4,10 +4,6 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="22">
             <TextBlock Text="RSA-ключи" FontSize="28" FontWeight="Bold" />
-            <TextBlock Style="{StaticResource MutedText}"
-                       Margin="0,5,0,14"
-                       Text="Создание и проверка пары RSA-ключей в формате PEM." />
-
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.15*" />

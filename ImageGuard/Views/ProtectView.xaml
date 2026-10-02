@@ -6,9 +6,6 @@
         <StackPanel Margin="22">
             <StackPanel Margin="0,0,0,14">
                 <TextBlock Text="Защита изображения" FontSize="28" FontWeight="Bold" />
-                <TextBlock Style="{StaticResource MutedText}"
-                           Margin="0,5,0,0"
-                           Text="Встраивание цифрового водяного знака и создание цифровой подписи." />
             </StackPanel>
 
             <Border Style="{StaticResource Card}">
@@ -77,10 +74,6 @@
                         <TextBlock x:Name="WatermarkByteCountText"
                                    Style="{StaticResource MutedText}"
                                    Text="UTF-8: 0 байт" />
-                        <TextBlock x:Name="CapacityInfoText"
-                                   Style="{StaticResource MutedText}"
-                                   Margin="0,4,0,7"
-                                   Text="Выберите изображение и введите текст." />
 
                         <Grid>
                             <Grid.ColumnDefinitions>

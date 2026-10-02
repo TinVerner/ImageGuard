@@ -36,16 +36,12 @@ public sealed class ImageService
     {
         ArgumentNullException.ThrowIfNull(image);
         if (string.IsNullOrWhiteSpace(path))
-        {
             throw new ArgumentException("Не указан путь сохранения изображения.", nameof(path));
-        }
 
         ValidatePngExtension(path);
         var directory = Path.GetDirectoryName(Path.GetFullPath(path));
         if (!string.IsNullOrEmpty(directory))
-        {
             Directory.CreateDirectory(directory);
-        }
 
         var source = image.ToBitmapSource();
         var encoder = new PngBitmapEncoder();
@@ -65,23 +61,17 @@ public sealed class ImageService
     private static void ValidateExistingPath(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-        {
             throw new FileNotFoundException("Файл изображения не найден.", path);
-        }
 
         var extension = Path.GetExtension(path);
         if (!extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
-        {
             throw new NotSupportedException("Поддерживаются только изображения PNG.");
-        }
     }
 
     private static void ValidatePngExtension(string path)
     {
         var extension = Path.GetExtension(path);
         if (!extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
-        {
             throw new ArgumentException("Для сохранения требуется расширение .png.", nameof(path));
-        }
     }
 }

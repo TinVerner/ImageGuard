@@ -106,6 +106,7 @@ public partial class ProtectView : UserControl
     {
         if (!TryReadSettings(out var settings, out var error))
         {
+            StatusText.Text = "Защита не выполнена.";
             ResultText.Text = error;
             return;
         }
@@ -133,6 +134,7 @@ public partial class ProtectView : UserControl
             ProcessingTimeText.Text = $"{result.ProcessingTime.TotalMilliseconds:F0} мс";
             if (!result.Success)
             {
+                StatusText.Text = "Защита не выполнена.";
                 ResultText.Text = result.ErrorMessage ?? "Не удалось защитить изображение.";
                 return;
             }
@@ -145,6 +147,7 @@ public partial class ProtectView : UserControl
         }
         catch (Exception exception)
         {
+            StatusText.Text = "Защита не выполнена.";
             ResultText.Text = exception.Message;
         }
         finally
@@ -159,7 +162,6 @@ public partial class ProtectView : UserControl
             string.IsNullOrWhiteSpace(WatermarkTextBox.Text))
         {
             _watermarkFits = false;
-            CapacityInfoText.Text = "Выберите изображение и введите текст.";
             UpdateProtectEnabled();
             return;
         }
@@ -167,17 +169,11 @@ public partial class ProtectView : UserControl
         try
         {
             var image = _images.Load(_inputImagePath);
-            var capacity = _watermarks.CalculateCapacity(image, WatermarkTextBox.Text);
-            _watermarkFits = capacity.Fits;
-            CapacityInfoText.Text =
-                $"Доступно блоков: {capacity.CapacityBits:N0}; требуется: {capacity.RequiredBits:N0}; " +
-                $"полезная емкость: {capacity.CapacityPayloadBytes:N0} байт. " +
-                (capacity.Fits ? "Текст помещается." : "Изображение недостаточно большое.");
+            _watermarkFits = _watermarks.CalculateCapacity(image, WatermarkTextBox.Text).Fits;
         }
-        catch (Exception exception)
+        catch
         {
             _watermarkFits = false;
-            CapacityInfoText.Text = exception.Message;
         }
 
         UpdateProtectEnabled();

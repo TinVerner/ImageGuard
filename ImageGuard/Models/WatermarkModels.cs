@@ -20,9 +20,7 @@ public sealed class WatermarkSettings
     public void Validate()
     {
         if (!double.IsFinite(Delta) || Delta <= 0)
-        {
             throw new ArgumentException("Delta должна быть конечным положительным числом.");
-        }
     }
 }
 

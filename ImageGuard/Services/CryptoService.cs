@@ -43,9 +43,7 @@ public sealed class CryptoService
     public KeyGenerationResult GenerateKeyPair(string directory, string name)
     {
         if (string.IsNullOrWhiteSpace(directory))
-        {
             throw new ArgumentException("Не выбрана папка сохранения ключей.", nameof(directory));
-        }
 
         name = SanitizeFileName(name);
         Directory.CreateDirectory(directory);
@@ -113,15 +111,11 @@ public sealed class CryptoService
     {
         ArgumentNullException.ThrowIfNull(document);
         if (string.IsNullOrWhiteSpace(path))
-        {
             throw new ArgumentException("Не указан путь файла подписи.", nameof(path));
-        }
 
         var directory = Path.GetDirectoryName(Path.GetFullPath(path));
         if (!string.IsNullOrEmpty(directory))
-        {
             Directory.CreateDirectory(directory);
-        }
 
         File.WriteAllText(path, Serialize(document));
     }
@@ -129,9 +123,7 @@ public sealed class CryptoService
     public SignatureDocument Load(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-        {
             throw new FileNotFoundException("Файл цифровой подписи не найден.", path);
-        }
 
         return Deserialize(File.ReadAllText(path));
     }
@@ -153,23 +145,17 @@ public sealed class CryptoService
         }
 
         if (document.Version != SignatureDocument.CurrentVersion)
-        {
             throw new NotSupportedException("Версия файла подписи не поддерживается.");
-        }
 
         if (!string.Equals(
                 document.Algorithm,
                 SignatureDocument.CurrentAlgorithm,
                 StringComparison.Ordinal) ||
             !string.Equals(document.HashAlgorithm, "SHA-256", StringComparison.Ordinal))
-        {
             throw new NotSupportedException("Алгоритм файла подписи не поддерживается.");
-        }
 
         if (string.IsNullOrWhiteSpace(document.SignatureBase64))
-        {
             throw new InvalidDataException("Файл подписи не содержит цифровую подпись.");
-        }
 
         if (!double.IsFinite(document.WatermarkDelta) ||
             document.WatermarkDelta <= 0)
@@ -184,9 +170,7 @@ public sealed class CryptoService
     private static string ReadPem(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-        {
             throw new FileNotFoundException("Файл PEM-ключа не найден.", path);
-        }
 
         return File.ReadAllText(path);
     }
@@ -194,14 +178,10 @@ public sealed class CryptoService
     private static string SanitizeFileName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-        {
             throw new ArgumentException("Имя пары ключей не может быть пустым.", nameof(name));
-        }
 
         if (name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-        {
             throw new ArgumentException("Имя пары ключей содержит недопустимые символы.", nameof(name));
-        }
 
         return name.Trim();
     }
