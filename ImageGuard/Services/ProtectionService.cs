@@ -4,22 +4,10 @@ using ImageGuard.Models;
 
 namespace ImageGuard.Services;
 
-public interface IProtectionService
-{
-    Task<ProtectionResult> ProtectAsync(
-        ProtectionRequest request,
-        IProgress<string>? status = null,
-        IProgress<double>? progress = null,
-        CancellationToken cancellationToken = default);
-}
-
 public sealed class ProtectionService(
-    IImageFileService imageFileService,
-    IWatermarkService watermarkService,
-    ImageQualityMetricsService metricsService,
-    CryptoService cryptoService,
-    IKeyService keyService,
-    ISignatureDocumentService documentService) : IProtectionService
+    ImageService imageService,
+    WatermarkService watermarkService,
+    CryptoService cryptoService)
 {
     public Task<ProtectionResult> ProtectAsync(
         ProtectionRequest request,
@@ -47,7 +35,7 @@ public sealed class ProtectionService(
             cancellationToken.ThrowIfCancellationRequested();
 
             status?.Report("Загрузка изображения...");
-            var original = imageFileService.Load(request.InputImagePath);
+            var original = imageService.Load(request.InputImagePath);
             progress?.Report(0.1);
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -65,18 +53,13 @@ public sealed class ProtectionService(
             cancellationToken.ThrowIfCancellationRequested();
 
             status?.Report("Сохранение защищенного изображения...");
-            imageFileService.Save(
-                embedded.Image,
-                request.OutputImagePath,
-                request.ImageOutputFormat,
-                request.JpegQuality);
+            imageService.Save(embedded.Image, request.OutputImagePath);
             progress?.Report(0.65);
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Метрика и контрольное извлечение выполняются после повторного чтения,
-            // поэтому для JPEG учитывается дополнительное искажение кодировщика.
+            // Контрольное извлечение выполняется после повторного чтения сохраненного PNG.
             status?.Report("Контроль сохраненного изображения...");
-            var savedImage = imageFileService.Load(request.OutputImagePath);
+            var savedImage = imageService.Load(request.OutputImagePath);
             var extractProgress = progress is null
                 ? null
                 : new Progress<double>(value => progress.Report(0.65 + value * 0.15));
@@ -86,12 +69,11 @@ public sealed class ProtectionService(
                 extractProgress,
                 cancellationToken: cancellationToken);
             var watermarkMatches =
-                extraction.Status == Enums.WatermarkStatus.Valid &&
+                extraction.Status == WatermarkStatus.Valid &&
                 string.Equals(
                     extraction.Text,
                     request.WatermarkText,
                     StringComparison.Ordinal);
-            var metrics = metricsService.Calculate(original, savedImage);
             progress?.Report(0.82);
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -100,9 +82,7 @@ public sealed class ProtectionService(
             // а не BitmapSource или промежуточный пиксельный буфер.
             var savedBytes = File.ReadAllBytes(request.OutputImagePath);
             var sha256 = cryptoService.ComputeSha256Hex(savedBytes);
-            using var privateKey = keyService.LoadPrivateKey(
-                request.PrivateKeyPath,
-                request.PrivateKeyPassword);
+            using var privateKey = cryptoService.LoadPrivateKey(request.PrivateKeyPath);
             var signature = cryptoService.Sign(savedBytes, privateKey);
             progress?.Report(0.95);
             cancellationToken.ThrowIfCancellationRequested();
@@ -114,11 +94,11 @@ public sealed class ProtectionService(
                 ProtectedFileName = Path.GetFileName(request.OutputImagePath),
                 Sha256 = sha256,
                 SignatureBase64 = Convert.ToBase64String(signature),
-                PublicKeyFingerprint = keyService.GetFingerprint(privateKey),
+                PublicKeyFingerprint = cryptoService.GetFingerprint(privateKey),
                 WatermarkDelta = request.WatermarkSettings.Delta
             };
 
-            documentService.Save(document, request.SignatureOutputPath);
+            cryptoService.Save(document, request.SignatureOutputPath);
             progress?.Report(1);
             stopwatch.Stop();
             status?.Report("Защита изображения завершена.");
@@ -128,8 +108,6 @@ public sealed class ProtectionService(
                 request.SignatureOutputPath,
                 sha256,
                 watermarkMatches,
-                metrics.Mse,
-                metrics.Psnr,
                 stopwatch.Elapsed,
                 watermarkMatches
                     ? null
@@ -185,12 +163,6 @@ public sealed class ProtectionService(
             throw new ArgumentException("Изображение и подпись должны сохраняться в разные файлы.");
         }
 
-        if (request.JpegQuality is < 1 or > 100)
-        {
-            throw new ArgumentOutOfRangeException(nameof(request.JpegQuality),
-                "Качество JPEG должно быть от 1 до 100.");
-        }
-
         request.WatermarkSettings.Validate();
     }
 
@@ -199,7 +171,7 @@ public sealed class ProtectionService(
         UnauthorizedAccessException => "Нет доступа к выбранному файлу или папке.",
         IOException => $"Ошибка чтения или записи: {exception.Message}",
         System.Security.Cryptography.CryptographicException =>
-            "Не удалось открыть закрытый RSA-ключ. Проверьте ключ и пароль.",
+            "Не удалось открыть закрытый RSA-ключ. Проверьте выбранный файл.",
         _ => exception.Message
     };
 }

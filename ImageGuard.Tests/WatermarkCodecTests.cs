@@ -8,7 +8,7 @@ public sealed class WatermarkCodecTests
     [Fact]
     public void Encode_UsesOnlyBigEndianLengthAndUtf8Payload()
     {
-        var codec = new TestServices().WatermarkCodec;
+        var codec = new TestServices().Watermarks;
         const string text = "Привет";
         var utf8 = Encoding.UTF8.GetBytes(text);
 
@@ -22,7 +22,7 @@ public sealed class WatermarkCodecTests
     [Fact]
     public void Decode_RestoresUtf8Text()
     {
-        var codec = new TestServices().WatermarkCodec;
+        var codec = new TestServices().Watermarks;
 
         var result = codec.Decode(codec.Encode("Привет мир"));
 
@@ -33,7 +33,7 @@ public sealed class WatermarkCodecTests
     [Fact]
     public void Decode_RejectsInvalidLengthAndUtf8()
     {
-        var codec = new TestServices().WatermarkCodec;
+        var codec = new TestServices().Watermarks;
         var invalidLength = new byte[] { 0, 0, 0, 2, (byte)'A' };
         var invalidUtf8 = new byte[] { 0, 0, 0, 1, 0xFF };
 

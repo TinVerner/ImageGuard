@@ -1,19 +1,11 @@
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using ImageGuard.Enums;
 using ImageGuard.Models;
 
 namespace ImageGuard.Services;
 
-public interface IImageFileService
-{
-    ImagePixelData Load(string path);
-    void Save(ImagePixelData image, string path, ImageOutputFormat format, int jpegQuality = 95);
-    ImageInfo GetImageInfo(string path);
-}
-
-public sealed class ImageFileService : IImageFileService
+public sealed class ImageService
 {
     public ImagePixelData Load(string path)
     {
@@ -40,7 +32,7 @@ public sealed class ImageFileService : IImageFileService
         return new(source.PixelWidth, source.PixelHeight, source.DpiX, source.DpiY, pixels);
     }
 
-    public void Save(ImagePixelData image, string path, ImageOutputFormat format, int jpegQuality = 95)
+    public void Save(ImagePixelData image, string path)
     {
         ArgumentNullException.ThrowIfNull(image);
         if (string.IsNullOrWhiteSpace(path))
@@ -48,30 +40,15 @@ public sealed class ImageFileService : IImageFileService
             throw new ArgumentException("Не указан путь сохранения изображения.", nameof(path));
         }
 
-        ValidateOutputExtension(path, format);
+        ValidatePngExtension(path);
         var directory = Path.GetDirectoryName(Path.GetFullPath(path));
         if (!string.IsNullOrEmpty(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        BitmapEncoder encoder;
-        BitmapSource source = image.ToBitmapSource();
-        if (format == ImageOutputFormat.Jpeg)
-        {
-            if (jpegQuality is < 1 or > 100)
-            {
-                throw new ArgumentOutOfRangeException(nameof(jpegQuality), "Качество JPEG должно быть от 1 до 100.");
-            }
-
-            source = new FormatConvertedBitmap(source, PixelFormats.Bgr24, null, 0);
-            encoder = new JpegBitmapEncoder { QualityLevel = jpegQuality };
-        }
-        else
-        {
-            encoder = new PngBitmapEncoder();
-        }
-
+        var source = image.ToBitmapSource();
+        var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(source));
         using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
         encoder.Save(stream);
@@ -93,34 +70,18 @@ public sealed class ImageFileService : IImageFileService
         }
 
         var extension = Path.GetExtension(path);
-        if (!extension.Equals(".png", StringComparison.OrdinalIgnoreCase) &&
-            !extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) &&
-            !extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
+        if (!extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
         {
-            throw new NotSupportedException("Поддерживаются изображения PNG, JPG и JPEG.");
+            throw new NotSupportedException("Поддерживаются только изображения PNG.");
         }
     }
 
-    private static void ValidateOutputExtension(string path, ImageOutputFormat format)
+    private static void ValidatePngExtension(string path)
     {
         var extension = Path.GetExtension(path);
-        var valid = format switch
+        if (!extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
         {
-            ImageOutputFormat.Png =>
-                extension.Equals(".png", StringComparison.OrdinalIgnoreCase),
-            ImageOutputFormat.Jpeg =>
-                extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase),
-            _ => false
-        };
-
-        if (!valid)
-        {
-            throw new ArgumentException(
-                format == ImageOutputFormat.Png
-                    ? "Для формата PNG требуется расширение .png."
-                    : "Для формата JPEG требуется расширение .jpg или .jpeg.",
-                nameof(path));
+            throw new ArgumentException("Для сохранения требуется расширение .png.", nameof(path));
         }
     }
 }

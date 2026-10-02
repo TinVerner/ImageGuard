@@ -1,7 +1,6 @@
 <UserControl x:Class="ImageGuard.Views.KeysView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:helpers="clr-namespace:ImageGuard.Helpers">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="22">
             <TextBlock Text="RSA-ключи" FontSize="28" FontWeight="Bold" />
@@ -30,70 +29,44 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0"
                                        VerticalAlignment="Center"
                                        FontWeight="SemiBold"
                                        Text="Имя пары ключей" />
-                            <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
-                                     Text="{Binding KeyName, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox x:Name="KeyNameTextBox"
+                                     Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                                     Text="mykey"
+                                     TextChanged="KeyNameTextBox_TextChanged" />
 
                             <TextBlock Grid.Row="1"
                                        VerticalAlignment="Center"
                                        FontWeight="SemiBold"
-                                       Text="Размер RSA" />
-                            <ComboBox Grid.Row="1" Grid.Column="1"
-                                      Width="180"
-                                      HorizontalAlignment="Left"
-                                      ItemsSource="{Binding KeySizes}"
-                                      SelectedItem="{Binding KeySize}" />
-
-                            <TextBlock Grid.Row="2"
-                                       VerticalAlignment="Center"
-                                       FontWeight="SemiBold"
                                        Text="Папка сохранения" />
-                            <TextBlock Grid.Row="2" Grid.Column="1"
+                            <TextBlock x:Name="OutputDirectoryText"
+                                       Grid.Row="1" Grid.Column="1"
                                        VerticalAlignment="Center"
                                        Margin="0,0,8,0"
-                                       Text="{Binding OutputDirectory}"
                                        Style="{StaticResource MutedText}"
                                        TextTrimming="CharacterEllipsis" />
-                            <Button Grid.Row="2" Grid.Column="2"
+                            <Button Grid.Row="1" Grid.Column="2"
                                     Style="{StaticResource SecondaryButton}"
-                                    Command="{Binding SelectFolderCommand}"
+                                    Click="SelectFolder_Click"
                                     Content="Выбрать папку" />
                         </Grid>
 
-                        <Grid Margin="0,3,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="12" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Style="{StaticResource LabelText}" Text="Пароль private key" />
-                                <PasswordBox helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay}" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Style="{StaticResource LabelText}" Text="Повтор пароля" />
-                                <PasswordBox helpers:PasswordBoxHelper.BoundPassword="{Binding PasswordConfirmation, Mode=TwoWay}" />
-                            </StackPanel>
-                        </Grid>
-                        <TextBlock Style="{StaticResource MutedText}"
-                                   Margin="0,0,0,4"
-                                   Text="Пустой пароль создаст незашифрованный закрытый ключ." />
-
-                        <Button Style="{StaticResource PrimaryButton}"
+                        <Button x:Name="GenerateButton"
+                                Style="{StaticResource PrimaryButton}"
                                 HorizontalAlignment="Left"
-                                Command="{Binding GenerateKeysCommand}"
+                                Click="Generate_Click"
                                 ToolTip="Укажите имя пары ключей и выберите папку сохранения."
                                 Content="Создать новую пару ключей" />
-                        <ProgressBar Height="5"
+                        <ProgressBar x:Name="BusyProgressBar"
+                                     Height="5"
                                      Margin="0,5,0,0"
                                      IsIndeterminate="True"
-                                     Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                     Visibility="Collapsed" />
                     </StackPanel>
                 </Border>
 
@@ -102,7 +75,7 @@
                         VerticalAlignment="Top">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionTitle}" Text="Результат" />
-                        <TextBlock Text="{Binding ResultText}"
+                        <TextBlock x:Name="ResultText"
                                    FontWeight="SemiBold"
                                    TextWrapping="Wrap" />
                         <Grid Margin="0,5,0,0">
@@ -116,15 +89,12 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" FontWeight="SemiBold" Text="Fingerprint SHA-256" Margin="0,3,10,5" />
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Fingerprint}" TextWrapping="Wrap" Margin="0,3,0,5" />
+                            <TextBlock x:Name="FingerprintText" Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" Margin="0,3,0,5" />
                             <TextBlock Grid.Row="1" FontWeight="SemiBold" Text="Открытый ключ" Margin="0,3,10,5" />
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PublicKeyPath}" TextWrapping="Wrap" Margin="0,3,0,5" />
+                            <TextBlock x:Name="PublicKeyPathText" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Margin="0,3,0,5" />
                             <TextBlock Grid.Row="2" FontWeight="SemiBold" Text="Закрытый ключ" Margin="0,3,10,0" />
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PrivateKeyPath}" TextWrapping="Wrap" Margin="0,3,0,0" />
+                            <TextBlock x:Name="PrivateKeyPathText" Grid.Row="2" Grid.Column="1" TextWrapping="Wrap" Margin="0,3,0,0" />
                         </Grid>
-                        <TextBlock Style="{StaticResource MutedText}"
-                                   Margin="0,7,0,0"
-                                   Text="Содержимое закрытого ключа не отображается." />
                     </StackPanel>
                 </Border>
             </Grid>
@@ -136,41 +106,31 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="150" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="145" />
+                            <ColumnDefinition Width="135" />
+                            <ColumnDefinition Width="135" />
                         </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0"
-                                   VerticalAlignment="Center"
+                        <TextBlock VerticalAlignment="Center"
                                    FontWeight="SemiBold"
                                    Text="PEM-файл" />
-                        <TextBlock Grid.Row="0" Grid.Column="1"
+                        <TextBlock x:Name="InspectionPathText"
+                                   Grid.Column="1"
                                    VerticalAlignment="Center"
                                    Margin="0,0,8,0"
-                                   Text="{Binding InspectionPath}"
                                    Style="{StaticResource MutedText}"
                                    TextTrimming="CharacterEllipsis" />
-                        <Button Grid.Row="0" Grid.Column="2"
+                        <Button Grid.Column="2"
                                 Style="{StaticResource SecondaryButton}"
-                                Command="{Binding SelectKeyToInspectCommand}"
+                                Click="SelectKeyToInspect_Click"
                                 Content="Выбрать PEM" />
-
-                        <TextBlock Grid.Row="1"
-                                   VerticalAlignment="Center"
-                                   FontWeight="SemiBold"
-                                   Text="Пароль private key" />
-                        <PasswordBox Grid.Row="1" Grid.Column="1"
-                                     helpers:PasswordBoxHelper.BoundPassword="{Binding InspectionPassword, Mode=TwoWay}" />
-                        <Button Grid.Row="1" Grid.Column="2"
+                        <Button x:Name="InspectButton"
+                                Grid.Column="3"
                                 Style="{StaticResource PrimaryButton}"
-                                Command="{Binding InspectKeyCommand}"
+                                Click="Inspect_Click"
                                 ToolTip="Сначала выберите PEM-файл."
                                 Content="Проверить ключ" />
                     </Grid>
-                    <TextBlock Text="{Binding InspectionResult}"
+                    <TextBlock x:Name="InspectionResultText"
                                Margin="0,7,0,0"
                                TextWrapping="Wrap" />
                 </StackPanel>

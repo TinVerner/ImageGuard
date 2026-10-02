@@ -64,7 +64,7 @@ public sealed class CryptographyTests
             WatermarkDelta = 20
         };
 
-        var actual = services.Documents.Deserialize(services.Documents.Serialize(expected));
+        var actual = services.Crypto.Deserialize(services.Crypto.Serialize(expected));
 
         Assert.Equal(expected.Version, actual.Version);
         Assert.Equal(expected.Algorithm, actual.Algorithm);
@@ -94,7 +94,7 @@ public sealed class CryptographyTests
         };
 
         Assert.Throws<NotSupportedException>(() =>
-            services.Documents.Deserialize(services.Documents.Serialize(document)));
+            services.Crypto.Deserialize(services.Crypto.Serialize(document)));
     }
 
     [Fact]
@@ -114,11 +114,11 @@ public sealed class CryptographyTests
         };
 
         Assert.Throws<NotSupportedException>(() =>
-            services.Documents.Deserialize(services.Documents.Serialize(legacy)));
+            services.Crypto.Deserialize(services.Crypto.Serialize(legacy)));
     }
 
     [Fact]
-    public void Generate3072BitKeyPair_LoadsAndHasStableFingerprint()
+    public void GenerateKeyPair_Uses2048BitPkcs8AndHasStableFingerprint()
     {
         var services = new TestServices();
         var directory = Path.Combine(
@@ -127,21 +127,21 @@ public sealed class CryptographyTests
         Directory.CreateDirectory(directory);
         try
         {
-            var generated = services.Keys.GenerateKeyPair(
+            var generated = services.Crypto.GenerateKeyPair(
                 directory,
-                "rsa-3072",
-                "password",
-                3072);
-            using var privateKey = services.Keys.LoadPrivateKey(
-                generated.PrivateKeyPath,
-                "password");
-            using var publicKey = services.Keys.LoadPublicKey(generated.PublicKeyPath);
+                "rsa-2048");
+            using var privateKey = services.Crypto.LoadPrivateKey(generated.PrivateKeyPath);
+            using var publicKey = services.Crypto.LoadPublicKey(generated.PublicKeyPath);
 
-            Assert.Equal(3072, generated.KeySize);
-            Assert.Equal(3072, privateKey.KeySize);
-            Assert.Equal(3072, publicKey.KeySize);
-            Assert.Equal(generated.Fingerprint, services.Keys.GetFingerprint(privateKey));
-            Assert.Equal(generated.Fingerprint, services.Keys.GetFingerprint(publicKey));
+            Assert.Equal(2048, generated.KeySize);
+            Assert.Equal(2048, privateKey.KeySize);
+            Assert.Equal(2048, publicKey.KeySize);
+            Assert.Contains(
+                "-----BEGIN PRIVATE KEY-----",
+                File.ReadAllText(generated.PrivateKeyPath),
+                StringComparison.Ordinal);
+            Assert.Equal(generated.Fingerprint, services.Crypto.GetFingerprint(privateKey));
+            Assert.Equal(generated.Fingerprint, services.Crypto.GetFingerprint(publicKey));
         }
         finally
         {

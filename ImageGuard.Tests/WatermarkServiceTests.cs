@@ -1,4 +1,3 @@
-using ImageGuard.Enums;
 using ImageGuard.Models;
 
 namespace ImageGuard.Tests;
@@ -16,7 +15,7 @@ public sealed class WatermarkServiceTests
         try
         {
             var embedded = services.Watermarks.Embed(original, "TEST-123", settings);
-            services.Images.Save(embedded.Image, path, ImageOutputFormat.Png);
+            services.Images.Save(embedded.Image, path);
             var reloaded = services.Images.Load(path);
 
             var extracted = services.Watermarks.Extract(reloaded, settings);

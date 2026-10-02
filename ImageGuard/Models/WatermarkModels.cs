@@ -1,5 +1,12 @@
 namespace ImageGuard.Models;
 
+public enum WatermarkStatus
+{
+    Valid,
+    NotFound,
+    Error
+}
+
 public sealed class WatermarkSettings
 {
     public const int BlockSize = 8;
@@ -35,6 +42,6 @@ public sealed record WatermarkEmbedResult(
     WatermarkCapacity Capacity);
 
 public sealed record WatermarkExtractionResult(
-    Enums.WatermarkStatus Status,
+    WatermarkStatus Status,
     string? Text,
     string? ErrorMessage);

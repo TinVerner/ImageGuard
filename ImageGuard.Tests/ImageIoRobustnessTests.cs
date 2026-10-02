@@ -1,5 +1,3 @@
-using ImageGuard.Enums;
-
 namespace ImageGuard.Tests;
 
 public sealed class ImageIoRobustnessTests
@@ -15,8 +13,7 @@ public sealed class ImageIoRobustnessTests
             var movedPath = Path.Combine(directory, "moved.png");
             services.Images.Save(
                 TestServices.CreateTexturedImage(32, 32),
-                originalPath,
-                ImageOutputFormat.Png);
+                originalPath);
 
             var loaded = services.Images.Load(originalPath);
             File.Move(originalPath, movedPath);
@@ -50,7 +47,7 @@ public sealed class ImageIoRobustnessTests
                 original,
                 "ALPHA",
                 TestServices.ReliableSettings());
-            services.Images.Save(embedded.Image, path, ImageOutputFormat.Png);
+            services.Images.Save(embedded.Image, path);
             var reloaded = services.Images.Load(path);
 
             for (var index = 3; index < original.Pixels.Length; index += 4)
@@ -65,30 +62,18 @@ public sealed class ImageIoRobustnessTests
     }
 
     [Fact]
-    public void JpegSave_ExplicitlyProducesOpaquePixels()
+    public void Load_RejectsNonPngExtension()
     {
         var services = new TestServices();
-        var directory = CreateDirectory();
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.jpg");
+        File.WriteAllBytes(path, [0xFF, 0xD8, 0xFF, 0xD9]);
         try
         {
-            var path = Path.Combine(directory, "opaque.jpg");
-            var image = TestServices.CreateTexturedImage(32, 32);
-            for (var index = 3; index < image.Pixels.Length; index += 4)
-            {
-                image.Pixels[index] = 0;
-            }
-
-            services.Images.Save(image, path, ImageOutputFormat.Jpeg, 100);
-            var reloaded = services.Images.Load(path);
-
-            for (var index = 3; index < reloaded.Pixels.Length; index += 4)
-            {
-                Assert.Equal(255, reloaded.Pixels[index]);
-            }
+            Assert.Throws<NotSupportedException>(() => services.Images.Load(path));
         }
         finally
         {
-            Directory.Delete(directory, recursive: true);
+            File.Delete(path);
         }
     }
 
@@ -131,10 +116,9 @@ public sealed class ImageIoRobustnessTests
             var signaturePath = Path.Combine(directory, "input.igsig");
             services.Images.Save(
                 TestServices.CreateTexturedImage(),
-                inputPath,
-                ImageOutputFormat.Png);
+                inputPath);
             var originalBytes = File.ReadAllBytes(inputPath);
-            var keys = services.Keys.GenerateKeyPair(directory, "no-overwrite", "password");
+            var keys = services.Crypto.GenerateKeyPair(directory, "no-overwrite");
 
             var result = await services.Protection.ProtectAsync(new(
                 inputPath,
@@ -142,9 +126,7 @@ public sealed class ImageIoRobustnessTests
                 "NO-OVERWRITE",
                 TestServices.ReliableSettings(),
                 keys.PrivateKeyPath,
-                "password",
-                signaturePath,
-                ImageOutputFormat.Png));
+                signaturePath));
 
             Assert.False(result.Success);
             Assert.Equal(originalBytes, File.ReadAllBytes(inputPath));

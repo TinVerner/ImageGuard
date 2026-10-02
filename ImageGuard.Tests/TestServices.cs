@@ -8,41 +8,15 @@ internal sealed class TestServices
     public TestServices()
     {
         Crypto = new CryptoService();
-        Keys = new KeyService(Crypto);
-        Documents = new SignatureDocumentService();
-        Images = new ImageFileService();
-        Colors = new ColorSpaceService();
-        WatermarkCodec = new WatermarkCodec();
-        Watermarks = new WatermarkService(
-            new DctService(),
-            WatermarkCodec,
-            Colors);
-        Metrics = new ImageQualityMetricsService();
-        Protection = new ProtectionService(
-            Images,
-            Watermarks,
-            Metrics,
-            Crypto,
-            Keys,
-            Documents);
-        Verification = new VerificationService(
-            Images,
-            Watermarks,
-            Crypto,
-            Keys,
-            Documents);
+        Images = new ImageService();
+        Watermarks = new WatermarkService();
+        Protection = new ProtectionService(Images, Watermarks, Crypto);
     }
 
     public CryptoService Crypto { get; }
-    public IKeyService Keys { get; }
-    public ISignatureDocumentService Documents { get; }
-    public IImageFileService Images { get; }
-    public ColorSpaceService Colors { get; }
-    public WatermarkCodec WatermarkCodec { get; }
-    public IWatermarkService Watermarks { get; }
-    public ImageQualityMetricsService Metrics { get; }
-    public IProtectionService Protection { get; }
-    public IVerificationService Verification { get; }
+    public ImageService Images { get; }
+    public WatermarkService Watermarks { get; }
+    public ProtectionService Protection { get; }
 
     public static ImagePixelData CreateTexturedImage(int width = 192, int height = 192)
     {

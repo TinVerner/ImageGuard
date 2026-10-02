@@ -1,4 +1,3 @@
-using ImageGuard.Enums;
 using ImageGuard.Models;
 
 namespace ImageGuard.Tests;
@@ -14,11 +13,7 @@ public sealed class CancellationAndErrorsTests
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             services.Protection.ProtectAsync(
-                new("", "", "", new(), "", null, "", ImageOutputFormat.Png),
-                cancellationToken: cancellation.Token));
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            services.Verification.VerifyAsync(
-                new("", "", "", new()),
+                new("", "", "", new(), "", ""),
                 cancellationToken: cancellation.Token));
     }
 
@@ -39,43 +34,6 @@ public sealed class CancellationAndErrorsTests
     }
 
     [Fact]
-    public async Task Protect_WrongPrivateKeyPassword_ReturnsFriendlyFailure()
-    {
-        var services = new TestServices();
-        var directory = CreateDirectory();
-        try
-        {
-            var inputPath = Path.Combine(directory, "input.png");
-            var outputPath = Path.Combine(directory, "protected.png");
-            var signaturePath = Path.Combine(directory, "protected.igsig");
-            services.Images.Save(
-                TestServices.CreateTexturedImage(),
-                inputPath,
-                ImageOutputFormat.Png);
-            var keys = services.Keys.GenerateKeyPair(directory, "password", "correct-password");
-
-            var result = await services.Protection.ProtectAsync(new(
-                inputPath,
-                outputPath,
-                "PASSWORD-TEST",
-                TestServices.ReliableSettings(),
-                keys.PrivateKeyPath,
-                "wrong-password",
-                signaturePath,
-                ImageOutputFormat.Png));
-
-            Assert.False(result.Success);
-            Assert.Contains("ключ", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("пароль", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
-            Assert.False(File.Exists(signaturePath));
-        }
-        finally
-        {
-            Directory.Delete(directory, recursive: true);
-        }
-    }
-
-    [Fact]
     public async Task Protect_ReportsProgressFromZeroToCompletion()
     {
         var services = new TestServices();
@@ -87,9 +45,8 @@ public sealed class CancellationAndErrorsTests
             var signaturePath = Path.Combine(directory, "protected.igsig");
             services.Images.Save(
                 TestServices.CreateTexturedImage(),
-                inputPath,
-                ImageOutputFormat.Png);
-            var keys = services.Keys.GenerateKeyPair(directory, "progress", "password");
+                inputPath);
+            var keys = services.Crypto.GenerateKeyPair(directory, "progress");
             var progress = new CollectingProgress();
 
             var result = await services.Protection.ProtectAsync(
@@ -99,9 +56,7 @@ public sealed class CancellationAndErrorsTests
                     "PROGRESS",
                     TestServices.ReliableSettings(),
                     keys.PrivateKeyPath,
-                    "password",
-                    signaturePath,
-                    ImageOutputFormat.Png),
+                    signaturePath),
                 progress: progress);
 
             Assert.True(result.Success, result.ErrorMessage);

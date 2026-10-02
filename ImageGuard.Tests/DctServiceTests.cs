@@ -7,7 +7,7 @@ public sealed class DctServiceTests
     [Fact]
     public void ForwardThenInverse_RestoresBlock()
     {
-        var service = new DctService();
+        var service = new WatermarkService();
         var original = new double[8, 8];
         for (var row = 0; row < 8; row++)
         {
@@ -31,7 +31,7 @@ public sealed class DctServiceTests
     [Fact]
     public void Forward_Constant129Block_HasOnlyExpectedDcCoefficient()
     {
-        var service = new DctService();
+        var service = new WatermarkService();
         var block = new double[8, 8];
         for (var row = 0; row < 8; row++)
         {

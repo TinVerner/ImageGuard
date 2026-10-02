@@ -1,42 +1,27 @@
 using System.Buffers.Binary;
-using ImageGuard.Enums;
+using System.Text;
 using ImageGuard.Models;
 
 namespace ImageGuard.Services;
 
-public interface IWatermarkService
+public sealed class WatermarkService
 {
-    WatermarkCapacity CalculateCapacity(ImagePixelData image, string text);
-
-    WatermarkEmbedResult Embed(
-        ImagePixelData image,
-        string text,
-        WatermarkSettings settings,
-        IProgress<double>? progress = null,
-        CancellationToken cancellationToken = default);
-
-    WatermarkExtractionResult Extract(
-        ImagePixelData image,
-        WatermarkSettings settings,
-        IProgress<double>? progress = null,
-        CancellationToken cancellationToken = default);
-}
-
-public sealed class WatermarkService(
-    DctService dctService,
-    WatermarkCodec codec,
-    ColorSpaceService colorSpaceService) : IWatermarkService
-{
-    private const int LengthPrefixBits = WatermarkCodec.LengthPrefixSize * 8;
+    public const int LengthPrefixSize = 4;
+    public const int Size = 8;
+    private const int LengthPrefixBits = LengthPrefixSize * 8;
     // The IDCT -> YCbCr/RGB -> YCbCr/DCT round-trip can reduce the coefficient
     // difference. This fixed margin compensates rounding; it is not adaptive,
     // and extraction still uses the user-selected Delta as its threshold.
     private const double NumericalMargin = 25.0;
 
+    private static readonly double[,] CosTable = BuildCosTable();
+    private static readonly double[] Scale =
+        [1.0 / Math.Sqrt(2), 1, 1, 1, 1, 1, 1, 1];
+
     public WatermarkCapacity CalculateCapacity(ImagePixelData image, string text)
     {
         ArgumentNullException.ThrowIfNull(image);
-        var data = codec.Encode(text);
+        var data = Encode(text);
         var capacityBits = GetCapacityBits(image);
         return new(
             capacityBits,
@@ -56,7 +41,7 @@ public sealed class WatermarkService(
         ArgumentNullException.ThrowIfNull(settings);
         settings.Validate();
 
-        var bits = codec.EncodeBits(text);
+        var bits = EncodeBits(text);
         var capacity = CalculateCapacity(image, text);
         if (!capacity.Fits)
         {
@@ -66,7 +51,7 @@ public sealed class WatermarkService(
         }
 
         // Convert RGB image to YCbCr. We use only Y for watermark embedding.
-        var planes = colorSpaceService.ToYCbCr(image);
+        var planes = ToYCbCr(image);
         var blocksX = image.Width / WatermarkSettings.BlockSize;
         var blocksY = image.Height / WatermarkSettings.BlockSize;
         using var positions = EnumerateBlocks(blocksX, blocksY).GetEnumerator();
@@ -84,9 +69,9 @@ public sealed class WatermarkService(
             var position = positions.Current;
             modifiedBlocks.Add(position);
             var block = ReadBlock(planes.Y, position);
-            var coefficients = dctService.Forward(block);
+            var coefficients = Forward(block);
             EmbedBit(coefficients, bits[bitIndex], settings.Delta);
-            WriteBlock(planes.Y, position, dctService.Inverse(coefficients));
+            WriteBlock(planes.Y, position, Inverse(coefficients));
 
             if (bitIndex % 16 == 0 || bitIndex == bits.Length - 1)
             {
@@ -94,7 +79,7 @@ public sealed class WatermarkService(
             }
         }
 
-        var result = colorSpaceService.FromYCbCr(planes, image.DpiX, image.DpiY);
+        var result = FromYCbCr(planes, image.DpiX, image.DpiY);
         RestoreUntouchedPixels(image, result, modifiedBlocks);
         return new(result, capacity);
     }
@@ -118,7 +103,7 @@ public sealed class WatermarkService(
                 "Изображение слишком мало: отсутствуют 32 бита длины.");
         }
 
-        var planes = colorSpaceService.ToYCbCr(image);
+        var planes = ToYCbCr(image);
         var blocksX = image.Width / WatermarkSettings.BlockSize;
         var blocksY = image.Height / WatermarkSettings.BlockSize;
         using var positions = EnumerateBlocks(blocksX, blocksY).GetEnumerator();
@@ -136,7 +121,7 @@ public sealed class WatermarkService(
             return LowConfidence(ambiguousBlock, ambiguousDifference);
         }
 
-        var lengthBytes = WatermarkCodec.ToBytesMsbFirst(lengthBits);
+        var lengthBytes = ToBytesMsbFirst(lengthBits);
         var payloadLength = BinaryPrimitives.ReadUInt32BigEndian(lengthBytes);
         var maximumPayloadBytes = (capacityBits - LengthPrefixBits) / 8;
         if (payloadLength == 0 || payloadLength > maximumPayloadBytes)
@@ -170,12 +155,217 @@ public sealed class WatermarkService(
         var allBits = new bool[totalBits];
         Array.Copy(lengthBits, allBits, lengthBits.Length);
         Array.Copy(payloadBits, 0, allBits, lengthBits.Length, payloadBits.Length);
-        var decoded = codec.DecodeBits(allBits);
+        var decoded = DecodeBits(allBits);
         progress?.Report(1);
 
         return decoded.IsValid
             ? new(WatermarkStatus.Valid, decoded.Text, null)
             : new(WatermarkStatus.Error, null, decoded.ErrorMessage);
+    }
+
+    public byte[] Encode(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new ArgumentException(
+                "Текст цифрового водяного знака не может быть пустым.",
+                nameof(text));
+        }
+
+        var payload = Encoding.UTF8.GetBytes(text);
+        var data = new byte[LengthPrefixSize + payload.Length];
+
+        // Первые 32 бита содержат длину UTF-8 текста в байтах (Big Endian).
+        BinaryPrimitives.WriteUInt32BigEndian(
+            data.AsSpan(0, LengthPrefixSize),
+            checked((uint)payload.Length));
+        payload.CopyTo(data, LengthPrefixSize);
+        return data;
+    }
+
+    private bool[] EncodeBits(string text) => ToBitsMsbFirst(Encode(text));
+
+    public WatermarkTextDecodeResult Decode(ReadOnlySpan<byte> data)
+    {
+        if (data.Length < LengthPrefixSize)
+        {
+            return new(false, null, "Недостаточно данных для чтения длины водяного знака.");
+        }
+
+        var payloadLength = BinaryPrimitives.ReadUInt32BigEndian(
+            data[..LengthPrefixSize]);
+        if (payloadLength == 0 ||
+            payloadLength > int.MaxValue ||
+            payloadLength > data.Length - LengthPrefixSize)
+        {
+            return new(false, null, "Длина водяного знака некорректна.");
+        }
+
+        try
+        {
+            var utf8 = new UTF8Encoding(
+                encoderShouldEmitUTF8Identifier: false,
+                throwOnInvalidBytes: true);
+            var text = utf8.GetString(
+                data.Slice(LengthPrefixSize, checked((int)payloadLength)));
+            return new(true, text, null);
+        }
+        catch (DecoderFallbackException)
+        {
+            return new(false, null, "Водяной знак содержит некорректный UTF-8.");
+        }
+    }
+
+    private WatermarkTextDecodeResult DecodeBits(IReadOnlyList<bool> bits) =>
+        Decode(ToBytesMsbFirst(bits));
+
+    private static bool[] ToBitsMsbFirst(ReadOnlySpan<byte> bytes)
+    {
+        var bits = new bool[bytes.Length * 8];
+        for (var byteIndex = 0; byteIndex < bytes.Length; byteIndex++)
+        {
+            for (var bitIndex = 0; bitIndex < 8; bitIndex++)
+            {
+                bits[byteIndex * 8 + bitIndex] =
+                    (bytes[byteIndex] & (1 << (7 - bitIndex))) != 0;
+            }
+        }
+
+        return bits;
+    }
+
+    private static byte[] ToBytesMsbFirst(IReadOnlyList<bool> bits)
+    {
+        ArgumentNullException.ThrowIfNull(bits);
+        if (bits.Count % 8 != 0)
+        {
+            throw new ArgumentException(
+                "Количество битов должно быть кратно восьми.",
+                nameof(bits));
+        }
+
+        var bytes = new byte[bits.Count / 8];
+        for (var bitIndex = 0; bitIndex < bits.Count; bitIndex++)
+        {
+            if (bits[bitIndex])
+            {
+                bytes[bitIndex / 8] |= (byte)(1 << (7 - bitIndex % 8));
+            }
+        }
+
+        return bytes;
+    }
+
+    private YCbCrPlanes ToYCbCr(ImagePixelData image)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        var yPlane = new double[image.Height, image.Width];
+        var cbPlane = new double[image.Height, image.Width];
+        var crPlane = new double[image.Height, image.Width];
+        var alpha = new byte[image.Width * image.Height];
+
+        for (var row = 0; row < image.Height; row++)
+        {
+            for (var column = 0; column < image.Width; column++)
+            {
+                var pixelIndex = row * image.Stride + column * 4;
+                var planeIndex = row * image.Width + column;
+                var b = image.Pixels[pixelIndex];
+                var g = image.Pixels[pixelIndex + 1];
+                var r = image.Pixels[pixelIndex + 2];
+
+                // BT.601: watermarking uses Y; Cb and Cr preserve color.
+                yPlane[row, column] = 0.299 * r + 0.587 * g + 0.114 * b;
+                cbPlane[row, column] =
+                    -0.168736 * r - 0.331264 * g + 0.5 * b + 128;
+                crPlane[row, column] =
+                    0.5 * r - 0.418688 * g - 0.081312 * b + 128;
+                alpha[planeIndex] = image.Pixels[pixelIndex + 3];
+            }
+        }
+
+        return new(yPlane, cbPlane, crPlane, alpha, image.Width, image.Height);
+    }
+
+    private ImagePixelData FromYCbCr(YCbCrPlanes planes, double dpiX, double dpiY)
+    {
+        ArgumentNullException.ThrowIfNull(planes);
+        var pixels = new byte[planes.Width * planes.Height * 4];
+
+        for (var row = 0; row < planes.Height; row++)
+        {
+            for (var column = 0; column < planes.Width; column++)
+            {
+                var pixelIndex = (row * planes.Width + column) * 4;
+                var y = planes.Y[row, column];
+                var cbOffset = planes.Cb[row, column] - 128;
+                var crOffset = planes.Cr[row, column] - 128;
+
+                var r = y + 1.402 * crOffset;
+                var g = y - 0.34414 * cbOffset - 0.71414 * crOffset;
+                var b = y + 1.772 * cbOffset;
+
+                pixels[pixelIndex] = ClampToByte(b);
+                pixels[pixelIndex + 1] = ClampToByte(g);
+                pixels[pixelIndex + 2] = ClampToByte(r);
+                pixels[pixelIndex + 3] = planes.Alpha[row * planes.Width + column];
+            }
+        }
+
+        return new(planes.Width, planes.Height, dpiX, dpiY, pixels);
+    }
+
+    public double[,] Forward(double[,] block)
+    {
+        ValidateSize(block, nameof(block));
+        var coefficients = new double[Size, Size];
+
+        // DCT-II для блока 8x8. Level shift (-128) центрирует яркость около нуля
+        // и отделяет постоянную составляющую (DC) от частотных коэффициентов.
+        for (var u = 0; u < Size; u++)
+        {
+            for (var v = 0; v < Size; v++)
+            {
+                var sum = 0.0;
+                for (var x = 0; x < Size; x++)
+                {
+                    for (var y = 0; y < Size; y++)
+                    {
+                        sum += (block[x, y] - 128.0) * CosTable[x, u] * CosTable[y, v];
+                    }
+                }
+
+                coefficients[u, v] = 0.25 * Scale[u] * Scale[v] * sum;
+            }
+        }
+
+        return coefficients;
+    }
+
+    public double[,] Inverse(double[,] coefficients)
+    {
+        ValidateSize(coefficients, nameof(coefficients));
+        var block = new double[Size, Size];
+
+        for (var x = 0; x < Size; x++)
+        {
+            for (var y = 0; y < Size; y++)
+            {
+                var sum = 0.0;
+                for (var u = 0; u < Size; u++)
+                {
+                    for (var v = 0; v < Size; v++)
+                    {
+                        sum += Scale[u] * Scale[v] * coefficients[u, v] *
+                               CosTable[x, u] * CosTable[y, v];
+                    }
+                }
+
+                block[x, y] = 0.25 * sum + 128.0;
+            }
+        }
+
+        return block;
     }
 
     private static void EmbedBit(double[,] coefficients, bool bit, double delta)
@@ -233,8 +423,7 @@ public sealed class WatermarkService(
                 throw new InvalidOperationException("Недостаточно полных блоков 8x8.");
             }
 
-            var coefficients = dctService.Forward(
-                ReadBlock(yPlane, positions.Current));
+            var coefficients = Forward(ReadBlock(yPlane, positions.Current));
             var difference =
                 coefficients[
                     WatermarkSettings.Coefficient1Row,
@@ -363,6 +552,32 @@ public sealed class WatermarkService(
             }
         }
     }
+
+    private static double[,] BuildCosTable()
+    {
+        var table = new double[Size, Size];
+        for (var x = 0; x < Size; x++)
+        {
+            for (var u = 0; u < Size; u++)
+            {
+                table[x, u] = Math.Cos((2 * x + 1) * u * Math.PI / 16.0);
+            }
+        }
+
+        return table;
+    }
+
+    private static void ValidateSize(double[,] values, string parameterName)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        if (values.GetLength(0) != Size || values.GetLength(1) != Size)
+        {
+            throw new ArgumentException("DCT работает только с блоками 8x8.", parameterName);
+        }
+    }
+
+    private static byte ClampToByte(double value) =>
+        (byte)Math.Clamp((int)Math.Round(value), 0, 255);
 
     private readonly record struct BlockPosition(int Row, int Column);
 }

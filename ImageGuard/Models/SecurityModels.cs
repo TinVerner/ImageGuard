@@ -2,6 +2,38 @@ using System.Text.Json.Serialization;
 
 namespace ImageGuard.Models;
 
+public sealed record ProtectionRequest(
+    string InputImagePath,
+    string OutputImagePath,
+    string WatermarkText,
+    WatermarkSettings WatermarkSettings,
+    string PrivateKeyPath,
+    string SignatureOutputPath);
+
+public sealed record ProtectionResult(
+    bool Success,
+    string? OutputImagePath,
+    string? SignaturePath,
+    string? Sha256,
+    bool WatermarkValidAfterSave,
+    TimeSpan ProcessingTime,
+    string? ErrorMessage)
+{
+    public static ProtectionResult Failure(TimeSpan elapsed, string error) =>
+        new(false, null, null, null, false, elapsed, error);
+}
+
+public sealed record KeyGenerationResult(
+    string PrivateKeyPath,
+    string PublicKeyPath,
+    int KeySize,
+    string Fingerprint);
+
+public sealed record KeyInspectionResult(
+    bool IsPrivate,
+    int KeySize,
+    string Fingerprint);
+
 public sealed class SignatureDocument
 {
     public const int CurrentVersion = 3;

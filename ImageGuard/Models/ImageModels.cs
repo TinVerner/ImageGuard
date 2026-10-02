@@ -63,5 +63,3 @@ public sealed record YCbCrPlanes(
     byte[] Alpha,
     int Width,
     int Height);
-
-public sealed record ImageQualityMetrics(double Mse, double Psnr);
